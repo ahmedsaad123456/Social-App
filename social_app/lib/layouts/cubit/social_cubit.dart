@@ -36,15 +36,14 @@ class SocialCubit extends Cubit<SocialStates> {
 
 //================================================================================================================================
 
-
   int currentIndex = 0;
 
   List<Widget> screens = [
-    FeedsScreen(),
-    ChatsScreen(),
+    const FeedsScreen(),
+    const ChatsScreen(),
     NewPostScreen(),
-    UsersScreen(),
-    SettingsScreen(),
+    const UsersScreen(),
+    const SettingsScreen(),
   ];
 
   void changeBottomNavBar(index) {
@@ -69,7 +68,6 @@ class SocialCubit extends Cubit<SocialStates> {
 
 //================================================================================================================================
 
-
   File? profileImage;
   final picker = ImagePicker();
 
@@ -86,7 +84,6 @@ class SocialCubit extends Cubit<SocialStates> {
 
 //================================================================================================================================
 
-
   File? coverImage;
 
   Future getCoverImage() async {
@@ -101,7 +98,6 @@ class SocialCubit extends Cubit<SocialStates> {
   }
 
 //================================================================================================================================
-
 
   void uploadProfileImage({
     required String name,
@@ -153,7 +149,6 @@ class SocialCubit extends Cubit<SocialStates> {
 
 //================================================================================================================================
 
-
   void updateUser({
     required String name,
     required String phone,
@@ -200,7 +195,6 @@ class SocialCubit extends Cubit<SocialStates> {
 
 //================================================================================================================================
 
-
   void uplaodPostImage({
     required String dateTime,
     required String text,
@@ -224,7 +218,6 @@ class SocialCubit extends Cubit<SocialStates> {
   }
 
 //================================================================================================================================
-
 
   void createPost({
     required String dateTime,
@@ -253,7 +246,6 @@ class SocialCubit extends Cubit<SocialStates> {
 
 //================================================================================================================================
 
-
   void removePostImage() {
     postImage = null;
     emit(SocialRemovePostImageState());
@@ -261,62 +253,92 @@ class SocialCubit extends Cubit<SocialStates> {
 
 //================================================================================================================================
 
+  List<PostModel> postList = [];
+  List<String> postId = [];
+  List<List<String>> likes = [];
+  List<bool> isLikedPostList = [];
 
-  List<PostModel>? postList = [];
-  List<String>? postId = [];
-  List<int> likes = [];
-
-  void getPostsData() {
-    
+  void getPostsData() async {
     emit(SocialGetPostLoadingState());
 
-    FirebaseFirestore.instance.collection('posts').get().then((value) {
-      if (value.docs.isNotEmpty) {
-        List<Future<PostModel>> futures = [];
+    try {
+      QuerySnapshot postQuerySnapshot =
+          await FirebaseFirestore.instance.collection('posts').get();
 
-        for (var element in value.docs) {
-          Future<QuerySnapshot> likesFuture =
-              element.reference.collection('likes').get();
-          futures.add(likesFuture.then((value) {
-            likes.add(value.docs.length);
-            postId!.add(element.id);
-            return PostModel.fromJson(element.data());
-          }).catchError((error) {}));
+      if (postQuerySnapshot.docs.isNotEmpty) {
+        for (QueryDocumentSnapshot postSnapshot in postQuerySnapshot.docs) {
+          List<String> users = [];
+          QuerySnapshot likesQuerySnapshot =
+              await postSnapshot.reference.collection('likes').get();
+          for (var userSnapshot in likesQuerySnapshot.docs) {
+            users.add(userSnapshot.id);
+          }
+
+          postList.add(
+              PostModel.fromJson(postSnapshot.data() as Map<String, dynamic>));
+          postId.add(postSnapshot.id);
+          likes.add(users);
+          isLikedPostList.add(users.contains(userModel!.uId));
         }
-
-        Future.wait(futures).then((posts) {
-          postList = posts;
-          emit(SocialGetPostSuccessState());
-        }).catchError((error) {
-          emit(SocialGetPostErrorState(error));
-        });
-      } else {
         emit(SocialGetPostSuccessState());
+      } else {
+        emit(SocialGetPostEmptyState());
       }
-    }).catchError((error) {
-      emit(SocialGetPostErrorState(error));
-    });
+    } catch (error) {
+      emit(SocialGetPostErrorState(error.toString()));
+    }
   }
 
 //================================================================================================================================
 
+  Future<bool> likePost({required String postId, required int index}) async {
+    try {
+      emit(SocialLikePostLoadingState());
+      await FirebaseFirestore.instance
+          .collection('posts')
+          .doc(postId)
+          .collection('likes')
+          .doc(userModel!.uId)
+          .set({'like': true});
 
-  void likePost({required String postId}) {
-    emit(SocialLikePostLoadingState());
-    FirebaseFirestore.instance
-        .collection('posts')
-        .doc(postId)
-        .collection('likes')
-        .doc(userModel!.uId)
-        .set({'like': true}).then((value) {
+      likes[index].add(userModel!.uId!);
+      isLikedPostList[index] = true;
+
       emit(SocialLikePostSuccessState());
-    }).catchError((error) {
+      return true; // Return true to indicate success
+    } catch (error) {
       emit(SocialLikePostErrorState(error.toString()));
-    });
+      return false; // Return false to indicate failure
+    }
   }
+
 
 //================================================================================================================================
 
+  Future<bool> unlikePost({required String postId, required int index}) async {
+    try {
+      emit(SocialUnlikePostLoadingState());
+
+      // Perform the unlike operation
+      await FirebaseFirestore.instance
+          .collection('posts')
+          .doc(postId)
+          .collection('likes')
+          .doc(userModel!.uId)
+          .delete();
+
+      likes[index].remove(userModel!.uId);
+      isLikedPostList[index] = false;
+
+      emit(SocialUnlikePostSuccessState());
+      return true; // Return true to indicate success
+    } catch (error) {
+      emit(SocialUnlikePostErrorState());
+      return false; // Return false to indicate failure
+    }
+  }
+
+//================================================================================================================================
 
   List<UserModel> users = [];
 
@@ -333,14 +355,12 @@ class SocialCubit extends Cubit<SocialStates> {
         }
         emit(SocialGetAllUsersSuccessState());
       }).catchError((error) {
-        print(error.toString());
         emit(SocialGetAllUsersErrorState(error.toString()));
       });
     }
   }
 
 //================================================================================================================================
-
 
   void sendMessage({
     required String receiverId,
@@ -383,7 +403,6 @@ class SocialCubit extends Cubit<SocialStates> {
 
 //================================================================================================================================
 
-
   List<MessageModel> messages = [];
 
   void getMessages({
@@ -399,17 +418,19 @@ class SocialCubit extends Cubit<SocialStates> {
         .snapshots()
         .listen((event) {
       messages = [];
-      event.docs.forEach((element) {
+      for (var element in event.docs) {
         messages.add(MessageModel.fromJson(element.data()));
-      });
+      }
       emit(SocialGetMessagesSuccessState());
     });
   }
 
 //================================================================================================================================
-
 }
 
 
 //================================================================================================================================
+
+
+
 

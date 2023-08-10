@@ -101,6 +101,8 @@ class SocialGetPostErrorState extends SocialStates {
   SocialGetPostErrorState(this.error);
 }
 
+class SocialGetPostEmptyState extends SocialStates{}
+
 
 // like post
 class SocialLikePostLoadingState extends SocialStates {}
@@ -111,6 +113,14 @@ class SocialLikePostErrorState extends SocialStates {
   final String error;
   SocialLikePostErrorState(this.error);
 }
+
+// unlike post
+
+class SocialUnlikePostLoadingState extends SocialStates {}
+
+class SocialUnlikePostErrorState extends SocialStates {}
+
+class SocialUnlikePostSuccessState extends SocialStates {}
 
 // chat
 
