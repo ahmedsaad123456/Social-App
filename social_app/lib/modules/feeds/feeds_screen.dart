@@ -5,6 +5,8 @@ import 'package:like_button/like_button.dart';
 import 'package:social_app/layouts/cubit/social_cubit.dart';
 import 'package:social_app/layouts/cubit/social_states.dart';
 import 'package:social_app/models/post_model.dart';
+import 'package:social_app/modules/comments/comments_screen.dart';
+import 'package:social_app/shared/components/components.dart';
 import 'package:social_app/shared/styles/colors.dart';
 import 'package:social_app/shared/styles/icon_broken.dart';
 
@@ -85,7 +87,13 @@ class FeedsScreen extends StatelessWidget {
 
 //================================================================================================================================
 
-  Widget buildPostItem(context, PostModel model, index) {
+  Widget buildPostItem(
+    context,
+    PostModel model,
+    index,
+  ) {
+    var textController = TextEditingController();
+
     return Card(
       clipBehavior: Clip.antiAliasWithSaveLayer,
       elevation: 5.0,
@@ -159,65 +167,6 @@ class FeedsScreen extends StatelessWidget {
               '${model.text}',
               style: Theme.of(context).textTheme.titleMedium,
             ),
-
-            // Padding(
-            //   padding: const EdgeInsets.only(
-            //     bottom: 10.0,
-            //     top: 5.0,
-            //   ),
-
-            //   child: Container(
-            //     width: double.infinity,
-            //     child: Wrap(
-            //       children: [
-            //         Padding(
-            //           padding: const EdgeInsetsDirectional.only(
-            //             end: 6.0,
-            //           ),
-            //           child: Container(
-            //             height: 25.0,
-            //             child: MaterialButton(
-            //               onPressed: () {},
-            //               minWidth: 1.0,
-            //               padding: EdgeInsets.zero,
-            //               child: Text(
-            //                 '#software',
-            //                 style: Theme.of(context)
-            //                     .textTheme
-            //                     .bodySmall!
-            //                     .copyWith(
-            //                       color: defaultColor,
-            //                     ),
-            //               ),
-            //             ),
-            //           ),
-            //         ),
-            //         Padding(
-            //           padding: const EdgeInsetsDirectional.only(
-            //             end: 6.0,
-            //           ),
-            //           child: Container(
-            //             height: 25.0,
-            //             child: MaterialButton(
-            //               onPressed: () {},
-            //               minWidth: 1.0,
-            //               padding: EdgeInsets.zero,
-            //               child: Text(
-            //                 '#flutter',
-            //                 style: Theme.of(context)
-            //                     .textTheme
-            //                     .bodySmall!
-            //                     .copyWith(
-            //                       color: defaultColor,
-            //                     ),
-            //               ),
-            //             ),
-            //           ),
-            //         ),
-            //       ],
-            //     ),
-            //   ),
-            // ),
             if (model.postImage != '')
               Padding(
                 padding: const EdgeInsets.only(
@@ -269,8 +218,14 @@ class FeedsScreen extends StatelessWidget {
                   ),
                   Expanded(
                     child: InkWell(
-                      onTap: () {},
-                      child: const Padding(
+                      onTap: () {
+                        navigateTo(
+                            context,
+                            CommentsScreen(
+                                SocialCubit.get(context).comments[index],
+                                index));
+                      },
+                      child: Padding(
                         padding: EdgeInsets.symmetric(
                           vertical: 5.0,
                         ),
@@ -285,7 +240,10 @@ class FeedsScreen extends StatelessWidget {
                             SizedBox(
                               width: 5.0,
                             ),
-                            Text('521 comments'),
+                            Text(
+                              '${SocialCubit.get(context).comments[index].length} comments',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
                           ],
                         ),
                       ),
@@ -304,32 +262,48 @@ class FeedsScreen extends StatelessWidget {
                 color: Colors.grey[300],
               ),
             ),
-            const SizedBox(
-              height: 10.0,
-            ),
             Row(
               children: [
                 Expanded(
-                  child: InkWell(
-                    onTap: () {},
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 18.0,
-                          backgroundImage: NetworkImage(
-                            SocialCubit.get(context).userModel!.image!,
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 18.0,
+                        backgroundImage: NetworkImage(
+                          SocialCubit.get(context).userModel!.image!,
+                        ),
+                      ),
+                      const SizedBox(
+                        width: 15.0,
+                      ),
+                      Expanded(
+                        child: TextFormField(
+                          keyboardType: TextInputType.text,
+                          controller: textController,
+                          decoration: InputDecoration(
+                            border: InputBorder.none,
+                            hintText: 'Write a comment...',
                           ),
                         ),
-                        const SizedBox(
-                          width: 15.0,
-                        ),
-                        Text(
-                          'Write a comment...',
-                          style:
-                              Theme.of(context).textTheme.bodySmall!.copyWith(),
-                        ),
-                      ],
-                    ),
+                      ),
+                      IconButton(
+                          onPressed: () {
+                            if (textController.text.isEmpty) {
+                              messageScreen(
+                                  message: 'you can\'t send empty comment',
+                                  state: ToastStates.ERROR);
+                            } else {
+                              SocialCubit.get(context).sendComment(
+                                  text: textController.text,
+                                  postId:
+                                      SocialCubit.get(context).postId[index],
+                                  index: index);
+
+                              textController.text = '';
+                            }
+                          },
+                          icon: Icon(IconBroken.Arrow___Right_Square)),
+                    ],
                   ),
                 ),
                 LikeButton(

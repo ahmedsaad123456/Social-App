@@ -129,3 +129,14 @@ class SocialSendMessageSuccessState extends SocialStates {}
 class SocialSendMessageErrorState extends SocialStates {}
 
 class SocialGetMessagesSuccessState extends SocialStates {}
+
+
+// send comments
+
+class SocialCommentPostLoadingState extends SocialStates {}
+
+class SocialCommentPostSuccessState extends SocialStates {}
+
+class SocialCommentPostErrorState extends SocialStates {
+  
+}

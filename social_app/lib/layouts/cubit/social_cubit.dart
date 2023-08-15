@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:social_app/layouts/cubit/social_states.dart';
+import 'package:social_app/models/comment_model.dart';
 import 'package:social_app/models/message_model.dart';
 import 'package:social_app/models/post_model.dart';
 import 'package:social_app/models/user_model.dart';
@@ -257,6 +258,7 @@ class SocialCubit extends Cubit<SocialStates> {
   List<String> postId = [];
   List<List<String>> likes = [];
   List<bool> isLikedPostList = [];
+  List<List<CommentModel>> comments = [];
 
   void getPostsData() async {
     emit(SocialGetPostLoadingState());
@@ -268,12 +270,21 @@ class SocialCubit extends Cubit<SocialStates> {
       if (postQuerySnapshot.docs.isNotEmpty) {
         for (QueryDocumentSnapshot postSnapshot in postQuerySnapshot.docs) {
           List<String> users = [];
+          List<CommentModel> commentUser = [];
           QuerySnapshot likesQuerySnapshot =
               await postSnapshot.reference.collection('likes').get();
           for (var userSnapshot in likesQuerySnapshot.docs) {
             users.add(userSnapshot.id);
           }
+          QuerySnapshot commentsQuerySnapshot =
+              await postSnapshot.reference.collection('comments').get();
 
+          for (var userSnapshot in commentsQuerySnapshot.docs) {
+            commentUser.add(CommentModel.fromJson(
+                userSnapshot.data() as Map<String, dynamic>));
+          }
+
+          comments.add(commentUser);
           postList.add(
               PostModel.fromJson(postSnapshot.data() as Map<String, dynamic>));
           postId.add(postSnapshot.id);
@@ -311,7 +322,6 @@ class SocialCubit extends Cubit<SocialStates> {
       return false; // Return false to indicate failure
     }
   }
-
 
 //================================================================================================================================
 
@@ -422,6 +432,35 @@ class SocialCubit extends Cubit<SocialStates> {
         messages.add(MessageModel.fromJson(element.data()));
       }
       emit(SocialGetMessagesSuccessState());
+    });
+  }
+
+  void sendComment({
+    required String text,
+    required String postId,
+    required int index,
+  }) {
+    emit(SocialCommentPostLoadingState());
+
+    CommentModel model = CommentModel(
+      dateTime: DateTime.now().toString(),
+      image: userModel!.image,
+      name: userModel!.name,
+      text: text,
+      uId: userModel!.uId,
+    );
+
+    FirebaseFirestore.instance
+        .collection('posts')
+        .doc(postId)
+        .collection('comments')
+        .add(model.toMap())
+        .then((value) {
+      comments[index].add(model);
+
+      emit(SocialCommentPostSuccessState());
+    }).catchError((error) {
+      emit(SocialCommentPostErrorState());
     });
   }
 
