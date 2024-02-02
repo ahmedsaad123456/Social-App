@@ -1,28 +1,35 @@
 //================================================================================================================================
 
-abstract class LoginStates {}
+// Abstract class representing various states for login
+abstract class LoginStates {} 
 
-class LoginInitialState extends LoginStates {}
-
+// Initial state for login
+class LoginInitialState extends LoginStates {} 
 //================================================================================================================================
 
-class LoginLoadingState extends LoginStates {}
 
-class LoginSuccessState extends LoginStates {
-  final String uId;
+// State representing loading during login process
+class LoginLoadingState extends LoginStates {} 
+
+// State representing successful login
+class LoginSuccessState extends LoginStates { 
+  
+  // User ID of the logged-in user
+  final String uId; 
+
   LoginSuccessState(this.uId);
 }
 
-class LoginErrorState extends LoginStates {
-  final String error;
+// State representing login error
+class LoginErrorState extends LoginStates { 
+  final String error; 
 
   LoginErrorState(this.error);
 }
 
 //================================================================================================================================
 
-class ChangePasswordVisibilityState extends LoginStates {}
-
+// State representing change in password visibility
+class ChangePasswordVisibilityState extends LoginStates {} 
 
 //================================================================================================================================
-

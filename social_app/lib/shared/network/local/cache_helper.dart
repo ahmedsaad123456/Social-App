@@ -38,7 +38,7 @@ static Future<bool> saveData({
     if (value is String) return await sharedPre.setString(key, value);
     if (value is int) return await sharedPre.setInt(key, value);
     if (value is bool) return await sharedPre.setBool(key, value);
-
+      
     return await sharedPre.setDouble(key, value);
   }
 

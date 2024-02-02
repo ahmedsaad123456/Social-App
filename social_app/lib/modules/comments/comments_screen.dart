@@ -5,7 +5,10 @@ import 'package:social_app/shared/components/components.dart';
 import 'package:social_app/shared/styles/icon_broken.dart';
 
 class CommentsScreen extends StatelessWidget {
+  // list of comments
   final List<CommentModel> comments;
+
+  // index of the post
   final int index;
 
   const CommentsScreen(this.comments, this.index, {super.key});
@@ -28,6 +31,8 @@ class CommentsScreen extends StatelessWidget {
         ));
   }
 
+
+  // build comment item 
   Widget buildCommentItem(CommentModel comment) {
     return Padding(
       padding: const EdgeInsets.only(
@@ -47,7 +52,7 @@ class CommentsScreen extends StatelessWidget {
                   comment.image!,
                 ),
               ),
-              SizedBox(
+              const SizedBox(
                 width: 15.0,
               ),
               Expanded(
@@ -63,7 +68,7 @@ class CommentsScreen extends StatelessWidget {
                         children: [
                           Text(
                             comment.name!,
-                            style: TextStyle(
+                            style: const TextStyle(
                                 color: Colors.black,
                                 fontSize: 16.0,
                                 fontWeight: FontWeight.w800),
@@ -95,6 +100,7 @@ class CommentsScreen extends StatelessWidget {
     );
   }
 
+  // number of likes on the post
   Widget buildNumberOfLikes(context, index) => InkWell(
         onTap: () {},
         child: Padding(

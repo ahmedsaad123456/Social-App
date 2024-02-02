@@ -9,6 +9,8 @@ import 'package:social_app/shared/styles/colors.dart';
 import 'package:social_app/shared/styles/icon_broken.dart';
 
 class ChatDetailsScreen extends StatelessWidget {
+
+  // user in chat
   final UserModel userModel;
   ChatDetailsScreen(this.userModel, {super.key});
 
@@ -20,6 +22,8 @@ class ChatDetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Builder(
       builder: (context) {
+
+        // get messages of this chat
         SocialCubit.get(context).getMessages(receiverId: userModel.uId!);
         return BlocConsumer<SocialCubit, SocialStates>(
           listener: (context, state) {},
@@ -51,14 +55,20 @@ class ChatDetailsScreen extends StatelessWidget {
                       Expanded(
                         child: ListView.separated(
                             physics: const BouncingScrollPhysics(),
+
                             itemBuilder: (context, index) {
+
+                              // if the message was sent by the loggedIn user
                               if (SocialCubit.get(context).userModel!.uId ==
                                   SocialCubit.get(context)
                                       .messages[index]
                                       .senderId) {
                                 return buildMyMessage(
                                     SocialCubit.get(context).messages[index]);
-                              } else {
+                              }
+                              
+                              // if the message wasn't sent by the loggedIn user
+                              else {
                                 return buildOtherMessage(
                                     SocialCubit.get(context).messages[index]);
                               }
@@ -80,6 +90,7 @@ class ChatDetailsScreen extends StatelessWidget {
                         ),
                         clipBehavior: Clip.antiAliasWithSaveLayer,
                         child: Row(
+                          // send message
                           children: [
                             Expanded(
                               child: Padding(
@@ -132,6 +143,7 @@ class ChatDetailsScreen extends StatelessWidget {
 
 //================================================================================================================================
 
+  // build the message of the other user
   Widget buildOtherMessage(MessageModel model) => Align(
         alignment: AlignmentDirectional.centerStart,
         child: Container(
@@ -153,6 +165,7 @@ class ChatDetailsScreen extends StatelessWidget {
 
 //================================================================================================================================
 
+  // build the message of the loggedIn user
   Widget buildMyMessage(MessageModel model) => Align(
         alignment: AlignmentDirectional.centerEnd,
         child: Container(

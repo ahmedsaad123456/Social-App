@@ -7,6 +7,7 @@ class CommentModel {
 
 //================================================================================================================================
 
+  // Constructor for comment model
 
   CommentModel({
     this.name,
@@ -18,6 +19,7 @@ class CommentModel {
 
 //================================================================================================================================
 
+  //Named Constructor to convert JSON data to comment model object
 
   CommentModel.fromJson(Map<String, dynamic>? json) {
     name = json!['name'];
@@ -29,6 +31,8 @@ class CommentModel {
 
 //================================================================================================================================
 
+
+  // Convert comment model object to a json object
 
   Map<String, dynamic> toMap() {
     return {

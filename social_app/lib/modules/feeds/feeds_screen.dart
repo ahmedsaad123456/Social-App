@@ -18,7 +18,18 @@ class FeedsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<SocialCubit, SocialStates>(
-      listener: (context, state) {},
+      listener: (context, state) {
+        // if there is no posts
+        if (state is SocialGetPostEmptyState) {
+          messageScreen(
+              message: "follow more users to show more posts",
+              state: ToastStates.WARNING);
+        } else if (state is SocialGetPostErrorState) {
+          messageScreen(
+              message: "Check your internet connection",
+              state: ToastStates.ERROR);
+        }
+      },
       builder: (context, state) {
         var postList = SocialCubit.get(context).postList;
         return ConditionalBuilder(
@@ -72,8 +83,22 @@ class FeedsScreen extends StatelessWidget {
                   itemCount: postList.length,
                 ),
                 const SizedBox(
+                  height: 10.0,
+                ),
+                // show more posts
+                ConditionalBuilder(
+                  condition: state is! SocialGetPostLoadingState,
+                  builder: (context) => defaultTextButton(
+                      fun: () {
+                        SocialCubit.get(context).getPostsData(loadMore: true);
+                      },
+                      text: "show more"),
+                  fallback: (context) =>
+                      const Center(child: CircularProgressIndicator()),
+                ),
+                const SizedBox(
                   height: 8.0,
-                )
+                ),
               ],
             ),
           ),
@@ -107,6 +132,7 @@ class FeedsScreen extends StatelessWidget {
           children: [
             Row(
               children: [
+                // image of the user's post
                 CircleAvatar(
                   radius: 25.0,
                   backgroundImage: NetworkImage(
@@ -122,6 +148,7 @@ class FeedsScreen extends StatelessWidget {
                     children: [
                       Row(
                         children: [
+                          // name of the user's post
                           Text(
                             '${model.name}',
                           ),
@@ -136,6 +163,7 @@ class FeedsScreen extends StatelessWidget {
                         ],
                       ),
                       Text(
+                        // dateTime of the post
                         '${model.dateTime}'.substring(0, 16),
                         style: Theme.of(context)
                             .textTheme
@@ -164,9 +192,11 @@ class FeedsScreen extends StatelessWidget {
               ),
             ),
             Text(
+              // text of the post
               '${model.text}',
               style: Theme.of(context).textTheme.titleMedium,
             ),
+            // if the post has image
             if (model.postImage != '')
               Padding(
                 padding: const EdgeInsets.only(
@@ -191,6 +221,7 @@ class FeedsScreen extends StatelessWidget {
               child: Row(
                 children: [
                   Expanded(
+                    // number of likes on the post
                     child: InkWell(
                       onTap: () {},
                       child: Padding(
@@ -217,6 +248,7 @@ class FeedsScreen extends StatelessWidget {
                     ),
                   ),
                   Expanded(
+                    // number of comments on the post
                     child: InkWell(
                       onTap: () {
                         navigateTo(
@@ -226,18 +258,18 @@ class FeedsScreen extends StatelessWidget {
                                 index));
                       },
                       child: Padding(
-                        padding: EdgeInsets.symmetric(
+                        padding: const EdgeInsets.symmetric(
                           vertical: 5.0,
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
-                            Icon(
+                            const Icon(
                               IconBroken.Chat,
                               color: Colors.amber,
                               size: 16.0,
                             ),
-                            SizedBox(
+                            const SizedBox(
                               width: 5.0,
                             ),
                             Text(
@@ -264,6 +296,7 @@ class FeedsScreen extends StatelessWidget {
             ),
             Row(
               children: [
+                // write comment on the post
                 Expanded(
                   child: Row(
                     children: [
@@ -280,7 +313,7 @@ class FeedsScreen extends StatelessWidget {
                         child: TextFormField(
                           keyboardType: TextInputType.text,
                           controller: textController,
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             border: InputBorder.none,
                             hintText: 'Write a comment...',
                           ),
@@ -302,10 +335,11 @@ class FeedsScreen extends StatelessWidget {
                               textController.text = '';
                             }
                           },
-                          icon: Icon(IconBroken.Arrow___Right_Square)),
+                          icon: const Icon(IconBroken.Arrow___Right_Square)),
                     ],
                   ),
                 ),
+                // do like on the post
                 LikeButton(
                   isLiked: SocialCubit.get(context).isLikedPostList[index],
                   size: 16.0,

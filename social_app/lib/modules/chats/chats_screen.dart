@@ -37,6 +37,7 @@ class ChatsScreen extends StatelessWidget {
 //================================================================================================================================
 
 
+  // build chat item
   Widget buildChatItem(UserModel model, context) {
     return InkWell(
       onTap: () {

@@ -1,43 +1,43 @@
-
-
 //================================================================================================================================
 
-
+// Abstract class representing various states for registration
 abstract class RegisterStates {}
 
-class RegisterInitialState extends RegisterStates {}
+
+// Initial state for registration
+class RegisterInitialState extends RegisterStates {} 
 
 //================================================================================================================================
 
+// State representing loading during registration
+class RegisterLoadingState extends RegisterStates {} 
 
-class RegisterLoadingState extends RegisterStates {}
 
-class RegisterSuccessState extends RegisterStates {
- 
-}
+// State representing successful registration
+class RegisterSuccessState extends RegisterStates {} 
 
-class RegisterErrorState extends RegisterStates {
+
+// State representing registration error
+class RegisterErrorState extends RegisterStates { 
   final String error;
 
-  RegisterErrorState(this.error);
+  RegisterErrorState(this.error); 
 }
 
+// State representing successful user creation
+class CreateUserSuccessState extends RegisterStates {}
 
-
-class CreateUserSuccessState extends RegisterStates {
- 
-}
-
+ // State representing user creation error
 class CreateUserErrorState extends RegisterStates {
-  final String error;
+  final String error; 
 
-  CreateUserErrorState(this.error);
+  CreateUserErrorState(this.error); 
 }
 
 //================================================================================================================================
 
 
-class ChangePasswordVisibilityState extends RegisterStates {}
+// State representing change in password visibility
+class ChangePasswordVisibilityState extends RegisterStates {} 
 
 //================================================================================================================================
-

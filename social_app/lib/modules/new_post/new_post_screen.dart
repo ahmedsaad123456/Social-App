@@ -13,9 +13,14 @@ class NewPostScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocConsumer<SocialCubit, SocialStates>(
       listener: (context, state) {
+        // to check if the post created successfully or not
         if (state is SocialCreatePostSuccessState) {
           messageScreen(
               message: 'Created Successfully', state: ToastStates.SUCCESS);
+        }
+
+        if (state is SocialCreatePostErrorState) {
+          messageScreen(message: "Failed", state: ToastStates.ERROR);
         }
       },
       builder: (context, state) {
@@ -26,11 +31,15 @@ class NewPostScreen extends StatelessWidget {
             actions: [
               defaultTextButton(
                   fun: () {
+                    // if the post has image
                     if (SocialCubit.get(context).postImage != null) {
                       SocialCubit.get(context).uplaodPostImage(
                           dateTime: DateTime.now().toString(),
                           text: textController.text);
-                    } else {
+                    } 
+
+                    // if the post hasn't image
+                    else {
                       SocialCubit.get(context).createPost(
                           dateTime: DateTime.now().toString(),
                           text: textController.text);
@@ -151,8 +160,6 @@ class NewPostScreen extends StatelessWidget {
                         ),
                       ),
                     ),
-                    Expanded(
-                        child: defaultTextButton(fun: () {}, text: '# tags'))
                   ],
                 )
               ],

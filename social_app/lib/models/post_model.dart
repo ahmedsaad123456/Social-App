@@ -8,6 +8,7 @@ class PostModel {
 
 //================================================================================================================================
 
+  // Constructor for post model
 
   PostModel({
     this.name,
@@ -20,6 +21,7 @@ class PostModel {
 
 //================================================================================================================================
 
+  //Named Constructor to convert JSON data to post model object
 
   PostModel.fromJson(Map<String, dynamic>? json) {
     name = json!['name'];
@@ -33,6 +35,7 @@ class PostModel {
 //================================================================================================================================
 
 
+  // Convert post model object to a json object
   Map<String, dynamic> toMap() {
     return {
       'name': name,

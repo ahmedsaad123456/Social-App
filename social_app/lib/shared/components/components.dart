@@ -4,6 +4,7 @@ import 'package:social_app/shared/styles/icon_broken.dart';
 
 //==========================================================================================================================================================
 
+// divider between the widgets 
 Widget myDivider() => Container(
       width: double.infinity,
       height: 1.0,
@@ -12,6 +13,7 @@ Widget myDivider() => Container(
 
 //==========================================================================================================================================================
 
+// defulat text form field
 Widget defaultFormField({
   required TextEditingController controller,
   required TextInputType type,
@@ -50,11 +52,14 @@ Widget defaultFormField({
 
 //==========================================================================================================================================================
 
+// method to navigate to new screen
 void navigateTo(context, widget) => Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => widget),
     );
 //==========================================================================================================================================================
+
+// method to navigate to new screen with remove all screens in the stack
 void navigateAndFinish(context, widget) => Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (context) => widget),
@@ -63,12 +68,14 @@ void navigateAndFinish(context, widget) => Navigator.pushAndRemoveUntil(
 
 //================================================================================================================================
 
+// default text button
 Widget defaultTextButton({required VoidCallback fun, required String text}) {
   return TextButton(onPressed: fun, child: Text(text));
 }
 
 //================================================================================================================================
 
+// default button
 Widget defaultButton({
   double width = double.infinity,
   Color background = Colors.blue,
@@ -99,6 +106,7 @@ Widget defaultButton({
 
 //================================================================================================================================
 
+// message screen 
 Future<bool?> messageScreen({
   required String? message,
   Toast toastLength = Toast.LENGTH_SHORT,
@@ -121,10 +129,12 @@ Future<bool?> messageScreen({
 
 //================================================================================================================================
 
+// enum to indicate the state of the toast screen
 enum ToastStates { SUCCESS, ERROR, WARNING }
 
 //================================================================================================================================
 
+// return the color of the toast screen according to the state 
 Color chooseToastColor(ToastStates state) {
   Color color;
 
@@ -145,6 +155,7 @@ Color chooseToastColor(ToastStates state) {
 
 //================================================================================================================================
 
+// email verification
 Widget
     emailVerification() => // if (FirebaseAuth.instance.currentUser!.emailVerified == false)
         Container(
@@ -155,12 +166,12 @@ Widget
             ),
             child: Row(
               children: [
-                Icon(Icons.info_outline),
-                SizedBox(
+                const Icon(Icons.info_outline),
+                const SizedBox(
                   width: 15.0,
                 ),
-                Expanded(child: Text('please verify your email')),
-                SizedBox(
+                const Expanded(child: Text('please verify your email')),
+                const SizedBox(
                   width: 20,
                 ),
                 defaultTextButton(
@@ -179,6 +190,10 @@ Widget
           ),
         );
 
+
+//================================================================================================================================
+
+// default app bar
 PreferredSizeWidget defaultAppBar({
   required BuildContext context,
   String? title,
@@ -186,7 +201,7 @@ PreferredSizeWidget defaultAppBar({
 }) =>
     AppBar(
       leading: IconButton(
-        icon: Icon(IconBroken.Arrow___Left_2),
+        icon: const Icon(IconBroken.Arrow___Left_2),
         onPressed: () {
           Navigator.pop(context);
         },
