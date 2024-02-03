@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:social_app/layouts/cubit/social_cubit.dart';
 import 'package:social_app/models/comment_model.dart';
+import 'package:social_app/modules/likes/likes_screen.dart';
 import 'package:social_app/shared/components/components.dart';
 import 'package:social_app/shared/styles/icon_broken.dart';
 
@@ -20,19 +21,24 @@ class CommentsScreen extends StatelessWidget {
             context: context,
             title: 'comments',
             actions: [buildNumberOfLikes(context, index)]),
-        body: SingleChildScrollView(
-          child: ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemBuilder: (context, index) {
-                return buildCommentItem(comments[index]);
-              },
-              itemCount: comments.length),
+        body: Column(
+          children: [
+            SingleChildScrollView(
+              child: ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemBuilder: (context, index) {
+                    return buildCommentItem(comments[index]);
+                  },
+                  itemCount: comments.length),
+            ),
+          ],
         ));
   }
 
+  // =================================================================================================================
 
-  // build comment item 
+  // build comment item
   Widget buildCommentItem(CommentModel comment) {
     return Padding(
       padding: const EdgeInsets.only(
@@ -48,8 +54,30 @@ class CommentsScreen extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 18.0,
-                backgroundImage: NetworkImage(
-                  comment.image!,
+                backgroundColor: Colors.white, // Set background color to white
+                child: ClipOval(
+                  child: Image.network(
+                    comment.image!,
+                    width: 50,
+                    height: 50,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (BuildContext context, Widget child,
+                        ImageChunkEvent? loadingProgress) {
+                      if (loadingProgress == null) {
+                        return child; // Return the main image when it's loaded
+                      } else {
+                        // Return a placeholder while the image is loading
+                        return const Center(
+                          child: Image(
+                              image: AssetImage('assets/images/white.jpeg')),
+                        );
+                      }
+                    },
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Image(
+                          image: AssetImage('assets/images/white.jpeg'));
+                    },
+                  ),
                 ),
               ),
               const SizedBox(
@@ -67,7 +95,7 @@ class CommentsScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            comment.name!,
+                            comment.name ?? "",
                             style: const TextStyle(
                                 color: Colors.black,
                                 fontSize: 16.0,
@@ -77,7 +105,7 @@ class CommentsScreen extends StatelessWidget {
                           ),
                           Expanded(
                               child: Text(
-                            comment.text!,
+                            comment.text ?? "Loading!!",
                             style: TextStyle(
                                 color: Colors.grey[700], fontSize: 15.0),
                           ))
@@ -100,9 +128,14 @@ class CommentsScreen extends StatelessWidget {
     );
   }
 
+  // =================================================================================================================
+
   // number of likes on the post
   Widget buildNumberOfLikes(context, index) => InkWell(
-        onTap: () {},
+        onTap: () {
+          navigateTo(context,
+              LikesScreen(SocialCubit.get(context).likes[index], index));
+        },
         child: Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: 5.0,

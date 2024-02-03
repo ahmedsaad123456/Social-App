@@ -35,13 +35,33 @@ class SettingsScreen extends StatelessWidget {
                         child: Container(
                           height: 140.0,
                           width: double.infinity,
-                          decoration: BoxDecoration(
-                            borderRadius: const BorderRadius.only(
+                          decoration: const BoxDecoration(
+                            borderRadius: BorderRadius.only(
                                 topLeft: Radius.circular(4.0),
                                 topRight: Radius.circular(4.0)),
-                            image: DecorationImage(
-                                image: NetworkImage('${userModel!.cover}'),
-                                fit: BoxFit.cover),
+                          ),
+                          // Use the loadingBuilder property of NetworkImage to show a placeholder while the image is loading
+                          child: Image.network(
+                            userModel!.cover!,
+                            fit: BoxFit.cover,
+                            loadingBuilder: (BuildContext context, Widget child,
+                                ImageChunkEvent? loadingProgress) {
+                              if (loadingProgress == null) {
+                                return child; // Return the main image when it's loaded
+                              } else {
+                                // Return a placeholder while the image is loading
+                                return const Center(
+                                  child: Image(
+                                      image: AssetImage(
+                                          'assets/images/white.jpeg')),
+                                );
+                              }
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Image(
+                                  image: AssetImage(
+                                      'assets/images/white.jpeg')); // Show an error icon if image loading fails
+                            },
                           ),
                         ),
                       ),
@@ -51,8 +71,34 @@ class SettingsScreen extends StatelessWidget {
                             Theme.of(context).scaffoldBackgroundColor,
                         child: CircleAvatar(
                           radius: 60.0,
-                          backgroundImage: NetworkImage(
-                            '${userModel.image}',
+                          backgroundColor:
+                              Colors.white, // Set background color to white
+                          child: ClipOval(
+                            child: Image.network(
+                              userModel.image!,
+                              width: 120,
+                              height: 120,
+                              fit: BoxFit.cover,
+                              loadingBuilder: (BuildContext context,
+                                  Widget child,
+                                  ImageChunkEvent? loadingProgress) {
+                                if (loadingProgress == null) {
+                                  return child; // Return the main image when it's loaded
+                                } else {
+                                  // Return a placeholder while the image is loading
+                                  return const Center(
+                                    child: Image(
+                                        image: AssetImage(
+                                            'assets/images/white.jpeg')),
+                                  );
+                                }
+                              },
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Image(
+                                    image:
+                                        AssetImage('assets/images/white.jpeg'));
+                              },
+                            ),
                           ),
                         ),
                       ),
@@ -87,23 +133,6 @@ class SettingsScreen extends StatelessWidget {
                               ),
                               Text(
                                 'Posts',
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: InkWell(
-                          onTap: () {},
-                          child: Column(
-                            children: [
-                              Text(
-                                '265',
-                                style: Theme.of(context).textTheme.titleLarge,
-                              ),
-                              Text(
-                                'Photos',
                                 style: Theme.of(context).textTheme.bodySmall,
                               ),
                             ],
@@ -152,7 +181,7 @@ class SettingsScreen extends StatelessWidget {
                     Expanded(
                       child: OutlinedButton(
                         onPressed: () {},
-                        child: const Text('Add Photos'),
+                        child: const Text('Add Posts'),
                       ),
                     ),
                     const SizedBox(
@@ -229,6 +258,10 @@ void signOut(context) {
       uId = null;
       SocialCubit.get(context).userModel = null;
       SocialCubit.get(context).postList = [];
+      SocialCubit.get(context).postId = [];
+      SocialCubit.get(context).comments = [];
+      SocialCubit.get(context).likes = [];
+      SocialCubit.get(context).isLikedPostList = [];
       SocialCubit.get(context).changeBottomNavBar(0);
 
       // Navigate to the LoginScreen after signing out.

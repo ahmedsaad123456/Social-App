@@ -5,11 +5,11 @@ import 'package:social_app/layouts/cubit/social_cubit.dart';
 import 'package:social_app/layouts/cubit/social_states.dart';
 import 'package:social_app/models/message_model.dart';
 import 'package:social_app/models/user_model.dart';
+import 'package:social_app/shared/components/components.dart';
 import 'package:social_app/shared/styles/colors.dart';
 import 'package:social_app/shared/styles/icon_broken.dart';
 
 class ChatDetailsScreen extends StatelessWidget {
-
   // user in chat
   final UserModel userModel;
   ChatDetailsScreen(this.userModel, {super.key});
@@ -22,7 +22,6 @@ class ChatDetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Builder(
       builder: (context) {
-
         // get messages of this chat
         SocialCubit.get(context).getMessages(receiverId: userModel.uId!);
         return BlocConsumer<SocialCubit, SocialStates>(
@@ -35,14 +34,38 @@ class ChatDetailsScreen extends StatelessWidget {
                   children: [
                     CircleAvatar(
                       radius: 20.0,
-                      backgroundImage: NetworkImage(
-                        userModel.image!,
+                      backgroundColor:
+                          Colors.white, // Set background color to white
+                      child: ClipOval(
+                        child: Image.network(
+                          userModel.image!,
+                          width: 50,
+                          height: 50,
+                          fit: BoxFit.cover,
+                          loadingBuilder: (BuildContext context, Widget child,
+                              ImageChunkEvent? loadingProgress) {
+                            if (loadingProgress == null) {
+                              return child; // Return the main image when it's loaded
+                            } else {
+                              // Return a placeholder while the image is loading
+                              return const Center(
+                                child: Image(
+                                    image:
+                                        AssetImage('assets/images/white.jpeg')),
+                              );
+                            }
+                          },
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Image(
+                                image: AssetImage('assets/images/white.jpeg'));
+                          },
+                        ),
                       ),
                     ),
                     const SizedBox(
                       width: 15.0,
                     ),
-                    Text(userModel.name!),
+                    Text(userModel.name ?? ""),
                   ],
                 ),
               ),
@@ -55,9 +78,7 @@ class ChatDetailsScreen extends StatelessWidget {
                       Expanded(
                         child: ListView.separated(
                             physics: const BouncingScrollPhysics(),
-
                             itemBuilder: (context, index) {
-
                               // if the message was sent by the loggedIn user
                               if (SocialCubit.get(context).userModel!.uId ==
                                   SocialCubit.get(context)
@@ -66,7 +87,7 @@ class ChatDetailsScreen extends StatelessWidget {
                                 return buildMyMessage(
                                     SocialCubit.get(context).messages[index]);
                               }
-                              
+
                               // if the message wasn't sent by the loggedIn user
                               else {
                                 return buildOtherMessage(
@@ -111,11 +132,17 @@ class ChatDetailsScreen extends StatelessWidget {
                               color: defaultColor,
                               child: MaterialButton(
                                 onPressed: () {
-                                  SocialCubit.get(context).sendMessage(
-                                      receiverId: userModel.uId!,
-                                      text: messageController.text,
-                                      dateTime: DateTime.now().toString());
-                                  messageController.text = '';
+                                  if (messageController.text.isEmpty) {
+                                    messageScreen(
+                                        message: "can't send empty message",
+                                        state: ToastStates.ERROR);
+                                  } else {
+                                    SocialCubit.get(context).sendMessage(
+                                        receiverId: userModel.uId!,
+                                        text: messageController.text,
+                                        dateTime: DateTime.now().toString());
+                                    messageController.text = '';
+                                  }
                                 },
                                 minWidth: 1.0,
                                 child: const Icon(
@@ -186,7 +213,6 @@ class ChatDetailsScreen extends StatelessWidget {
       );
 
 //================================================================================================================================
-
 }
 
 //================================================================================================================================

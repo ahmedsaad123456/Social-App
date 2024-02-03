@@ -36,7 +36,6 @@ class ChatsScreen extends StatelessWidget {
 
 //================================================================================================================================
 
-
   // build chat item
   Widget buildChatItem(UserModel model, context) {
     return InkWell(
@@ -49,14 +48,36 @@ class ChatsScreen extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 25.0,
-              backgroundImage: NetworkImage(
-                model.image!,
+              backgroundColor: Colors.white, // Set background color to white
+              child: ClipOval(
+                child: Image.network(
+                  model.image!,
+                  width: 50,
+                  height: 50,
+                  fit: BoxFit.cover,
+                  loadingBuilder: (BuildContext context, Widget child,
+                      ImageChunkEvent? loadingProgress) {
+                    if (loadingProgress == null) {
+                      return child; // Return the main image when it's loaded
+                    } else {
+                      // Return a placeholder while the image is loading
+                      return const Center(
+                        child: Image(
+                            image: AssetImage('assets/images/white.jpeg')),
+                      );
+                    }
+                  },
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Image(
+                        image: AssetImage('assets/images/white.jpeg'));
+                  },
+                ),
               ),
             ),
             const SizedBox(
               width: 15.0,
             ),
-            Text(model.name!),
+            Text(model.name ?? ""),
           ],
         ),
       ),

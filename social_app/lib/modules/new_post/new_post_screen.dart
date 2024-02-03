@@ -36,7 +36,7 @@ class NewPostScreen extends StatelessWidget {
                       SocialCubit.get(context).uplaodPostImage(
                           dateTime: DateTime.now().toString(),
                           text: textController.text);
-                    } 
+                    }
 
                     // if the post hasn't image
                     else {
@@ -62,8 +62,32 @@ class NewPostScreen extends StatelessWidget {
                   children: [
                     CircleAvatar(
                       radius: 25.0,
-                      backgroundImage: NetworkImage(
-                        SocialCubit.get(context).userModel!.image ?? '',
+                      backgroundColor:
+                          Colors.white, // Set background color to white
+                      child: ClipOval(
+                        child: Image.network(
+                          SocialCubit.get(context).userModel!.image!,
+                          width: 50,
+                          height: 50,
+                          fit: BoxFit.cover,
+                          loadingBuilder: (BuildContext context, Widget child,
+                              ImageChunkEvent? loadingProgress) {
+                            if (loadingProgress == null) {
+                              return child; // Return the main image when it's loaded
+                            } else {
+                              // Return a placeholder while the image is loading
+                              return const Center(
+                                child: Image(
+                                    image:
+                                        AssetImage('assets/images/white.jpeg')),
+                              );
+                            }
+                          },
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Image(
+                                image: AssetImage('assets/images/white.jpeg'));
+                          },
+                        ),
                       ),
                     ),
                     const SizedBox(

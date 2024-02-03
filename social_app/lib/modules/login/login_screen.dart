@@ -44,7 +44,7 @@ class LoginScreen extends StatelessWidget {
         }
       }, builder: (context, state) {
         return Scaffold(
-          appBar: AppBar(),
+          backgroundColor: Colors.white,
           body: Center(
             child: SingleChildScrollView(
               child: Padding(
@@ -136,14 +136,17 @@ class LoginScreen extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text(
-                              'Don\'t have an account? '), // Sign up prompt
-                          defaultTextButton(
-                              fun: () {
-                                navigateTo(context,
-                                    RegisterScreen()); // Navigate to register screen
-                              },
-                              text: 'Register now') // Register now button
+                          const Expanded(
+                            child: Text('Don\'t have an account? '),
+                          ), // Sign up prompt
+                          Expanded(
+                            child: defaultTextButton(
+                                fun: () {
+                                  navigateTo(context,
+                                      RegisterScreen()); // Navigate to register screen
+                                },
+                                text: 'Register now'),
+                          ) // Register now button
                         ],
                       ),
                     ],

@@ -1,10 +1,13 @@
 import 'package:conditional_builder_null_safety/conditional_builder_null_safety.dart'; 
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart'; 
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:social_app/layouts/cubit/social_cubit.dart'; 
 import 'package:social_app/layouts/social_layout.dart';
 import 'package:social_app/modules/register/cubit/register_cubit.dart'; 
 import 'package:social_app/modules/register/cubit/register_states.dart'; 
-import 'package:social_app/shared/components/components.dart'; 
+import 'package:social_app/shared/components/components.dart';
+import 'package:social_app/shared/components/constants.dart';
+import 'package:social_app/shared/network/local/cache_helper.dart'; 
 
 //================================================================================================================================
 
@@ -27,7 +30,14 @@ class RegisterScreen extends StatelessWidget {
           // Show success message on successful registration
           messageScreen(
               message: 'Register Success', state: ToastStates.SUCCESS);
-          navigateAndFinish(context, const SocialLayout()); // Navigate to main app layout
+              // Save user ID in cache helper
+          CacheHelper.saveData(key: 'uId', value: state.uId).then((value) {
+            uId = state.uId;
+            SocialCubit.get(context).getUserData();
+            SocialCubit.get(context).getPostsData();
+            navigateAndFinish(
+                context, const SocialLayout()); // Navigate to main app layout
+          });
         } else if (state is CreateUserErrorState) {
           // Show error message on registration error
           messageScreen(message: state.error, state: ToastStates.ERROR);

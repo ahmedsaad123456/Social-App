@@ -25,7 +25,14 @@ class RegisterErrorState extends RegisterStates {
 }
 
 // State representing successful user creation
-class CreateUserSuccessState extends RegisterStates {}
+class CreateUserSuccessState extends RegisterStates {
+
+  // User ID of the logged-in user
+  final String uId; 
+
+  CreateUserSuccessState(this.uId);
+
+}
 
  // State representing user creation error
 class CreateUserErrorState extends RegisterStates {

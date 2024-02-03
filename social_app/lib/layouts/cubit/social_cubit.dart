@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:social_app/layouts/cubit/social_states.dart';
 import 'package:social_app/models/comment_model.dart';
+import 'package:social_app/models/like_model.dart';
 import 'package:social_app/models/message_model.dart';
 import 'package:social_app/models/post_model.dart';
 import 'package:social_app/models/user_model.dart';
@@ -281,14 +282,13 @@ class SocialCubit extends Cubit<SocialStates> {
   List<String> postId = [];
 
   // list of list of the likes
-  List<List<String>> likes = [];
+  List<List<LikeModel>> likes = [];
 
   // list of the boolean to check if the loggedIn user is did like on the post or not
   List<bool> isLikedPostList = [];
 
   // list of list of the comments
   List<List<CommentModel>> comments = [];
-
 
   // get all the posts data
   void getPostsData({bool loadMore = false}) async {
@@ -297,12 +297,12 @@ class SocialCubit extends Cubit<SocialStates> {
     try {
       Query postQuery = FirebaseFirestore.instance.collection('posts');
 
-
       // if the user need to show more
       if (loadMore && postId.isNotEmpty) {
         // If loading more and we have existing posts, fetch next batch after the last post
         if (loadMore && postId.isNotEmpty) {
-          postQuery = postQuery.orderBy(FieldPath.documentId).startAfter([postId.last]);
+          postQuery =
+              postQuery.orderBy(FieldPath.documentId).startAfter([postId.last]);
         }
       }
 
@@ -311,14 +311,15 @@ class SocialCubit extends Cubit<SocialStates> {
 
       if (postQuerySnapshot.docs.isNotEmpty) {
         for (QueryDocumentSnapshot postSnapshot in postQuerySnapshot.docs) {
-          List<String> users = [];
+          List<LikeModel> likesUsers = [];
           List<CommentModel> commentUser = [];
 
           // get likes of the post
           QuerySnapshot likesQuerySnapshot =
               await postSnapshot.reference.collection('likes').get();
           for (var userSnapshot in likesQuerySnapshot.docs) {
-            users.add(userSnapshot.id);
+            likesUsers.add(LikeModel.fromJson(
+                userSnapshot.data() as Map<String, dynamic>));
           }
 
           // get comments of the post
@@ -335,8 +336,9 @@ class SocialCubit extends Cubit<SocialStates> {
           postList.add(
               PostModel.fromJson(postSnapshot.data() as Map<String, dynamic>));
           postId.add(postSnapshot.id);
-          likes.add(users);
-          isLikedPostList.add(users.contains(userModel!.uId));
+          likes.add(likesUsers);
+          bool isLiked = likesUsers.any((like) => like.uId == userModel!.uId);
+          isLikedPostList.add(isLiked);
         }
         emit(SocialGetPostSuccessState());
       } else {
@@ -353,14 +355,19 @@ class SocialCubit extends Cubit<SocialStates> {
   Future<bool> likePost({required String postId, required int index}) async {
     try {
       emit(SocialLikePostLoadingState());
+
+      LikeModel model = LikeModel(
+        image: userModel!.image,
+        name: userModel!.name,
+        uId: userModel!.uId,
+      );
       await FirebaseFirestore.instance
           .collection('posts')
           .doc(postId)
           .collection('likes')
-          .doc(userModel!.uId)
-          .set({'like': true});
+          .add(model.toMap());
 
-      likes[index].add(userModel!.uId!);
+      likes[index].add(model);
       isLikedPostList[index] = true;
 
       emit(SocialLikePostSuccessState());
@@ -383,10 +390,14 @@ class SocialCubit extends Cubit<SocialStates> {
           .collection('posts')
           .doc(postId)
           .collection('likes')
-          .doc(userModel!.uId)
-          .delete();
+          .where('uId', isEqualTo: userModel!.uId)
+          .get()
+          .then((querySnapshot) {
+        querySnapshot.docs.first.reference
+            .delete(); // Delete the first document directly (unique)
+      });
 
-      likes[index].remove(userModel!.uId);
+      likes[index].removeWhere((like) => like.uId == userModel!.uId);
       isLikedPostList[index] = false;
 
       emit(SocialUnlikePostSuccessState());
@@ -399,7 +410,7 @@ class SocialCubit extends Cubit<SocialStates> {
 
 //================================================================================================================================
 
-  // get all users 
+  // get all users
   List<UserModel> users = [];
 
   void getAllUsersData() {
@@ -408,7 +419,6 @@ class SocialCubit extends Cubit<SocialStates> {
       FirebaseFirestore.instance.collection('users').get().then((value) {
         if (value.docs.isNotEmpty) {
           for (var element in value.docs) {
-
             // store all users in the list expect the loggedIn user
             if (element.data()['uId'] != userModel!.uId) {
               users.add(UserModel.fromJson(element.data()));
@@ -468,9 +478,7 @@ class SocialCubit extends Cubit<SocialStates> {
 
 //================================================================================================================================
 
-
   List<MessageModel> messages = [];
-
 
   // get messages
   void getMessages({
@@ -526,6 +534,10 @@ class SocialCubit extends Cubit<SocialStates> {
   }
 
 //================================================================================================================================
+
+  void rebuildComments(){
+    emit(SocialCommentPostSuccessState());
+  }
 }
 
 //================================================================================================================================

@@ -6,6 +6,7 @@ import 'package:social_app/layouts/cubit/social_cubit.dart';
 import 'package:social_app/layouts/cubit/social_states.dart';
 import 'package:social_app/models/post_model.dart';
 import 'package:social_app/modules/comments/comments_screen.dart';
+import 'package:social_app/modules/likes/likes_screen.dart';
 import 'package:social_app/shared/components/components.dart';
 import 'package:social_app/shared/styles/colors.dart';
 import 'package:social_app/shared/styles/icon_broken.dart';
@@ -135,10 +136,34 @@ class FeedsScreen extends StatelessWidget {
                 // image of the user's post
                 CircleAvatar(
                   radius: 25.0,
-                  backgroundImage: NetworkImage(
-                    model.image!,
+                  backgroundColor:
+                      Colors.white, // Set background color to white
+                  child: ClipOval(
+                    child: Image.network(
+                      model.image!,
+                      width: 50,
+                      height: 50,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (BuildContext context, Widget child,
+                          ImageChunkEvent? loadingProgress) {
+                        if (loadingProgress == null) {
+                          return child; // Return the main image when it's loaded
+                        } else {
+                          // Return a placeholder while the image is loading
+                          return const Center(
+                            child: Image(
+                                image: AssetImage('assets/images/white.jpeg')),
+                          );
+                        }
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Image(
+                            image: AssetImage('assets/images/white.jpeg'));
+                      },
+                    ),
                   ),
                 ),
+
                 const SizedBox(
                   width: 15.0,
                 ),
@@ -223,7 +248,12 @@ class FeedsScreen extends StatelessWidget {
                   Expanded(
                     // number of likes on the post
                     child: InkWell(
-                      onTap: () {},
+                      onTap: () {
+                        navigateTo(
+                            context,
+                            LikesScreen(
+                                SocialCubit.get(context).likes[index], index));
+                      },
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
                           vertical: 5.0,
@@ -302,8 +332,33 @@ class FeedsScreen extends StatelessWidget {
                     children: [
                       CircleAvatar(
                         radius: 18.0,
-                        backgroundImage: NetworkImage(
-                          SocialCubit.get(context).userModel!.image!,
+                        backgroundColor:
+                            Colors.white, // Set background color to white
+                        child: ClipOval(
+                          child: Image.network(
+                            SocialCubit.get(context).userModel!.image!,
+                            width: 50,
+                            height: 50,
+                            fit: BoxFit.cover,
+                            loadingBuilder: (BuildContext context, Widget child,
+                                ImageChunkEvent? loadingProgress) {
+                              if (loadingProgress == null) {
+                                return child; // Return the main image when it's loaded
+                              } else {
+                                // Return a placeholder while the image is loading
+                                return const Center(
+                                  child: Image(
+                                      image: AssetImage(
+                                          'assets/images/white.jpeg')),
+                                );
+                              }
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Image(
+                                  image:
+                                      AssetImage('assets/images/white.jpeg'));
+                            },
+                          ),
                         ),
                       ),
                       const SizedBox(
