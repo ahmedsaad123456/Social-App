@@ -140,3 +140,36 @@ class SocialCommentPostSuccessState extends SocialStates {}
 class SocialCommentPostErrorState extends SocialStates {
   
 }
+
+// search for users
+
+class SocialGetSearchUsersLoadingState extends SocialStates {}
+
+class SocialGetSearchUsersSuccessState extends SocialStates {}
+
+class SocialGetSearchUsersErrorState extends SocialStates {
+  final String error;
+  SocialGetSearchUsersErrorState(this.error);
+}
+
+
+// get logged in user posts data
+class SocialGetLoggedInUserPostLoadingState extends SocialStates {}
+
+class SocialGetLoggedInUserPostSuccessState extends SocialStates {}
+
+class SocialGetLoggedInUserPostErrorState extends SocialStates {
+  final String error;
+  SocialGetLoggedInUserPostErrorState(this.error);
+}
+
+class SocialGetLoggedInUserPostEmptyState extends SocialStates{}
+
+
+// follow user
+
+class SocialFollowUserSuccessState extends SocialStates {}
+
+class SocialFollowUserErrorState extends SocialStates {}
+
+

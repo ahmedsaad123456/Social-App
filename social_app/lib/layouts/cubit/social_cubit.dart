@@ -7,8 +7,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:social_app/layouts/cubit/social_states.dart';
 import 'package:social_app/models/comment_model.dart';
+import 'package:social_app/models/follow_model.dart';
 import 'package:social_app/models/like_model.dart';
 import 'package:social_app/models/message_model.dart';
+import 'package:social_app/models/post_data_model.dart';
 import 'package:social_app/models/post_model.dart';
 import 'package:social_app/models/user_model.dart';
 import 'package:social_app/modules/chats/chats_screen.dart';
@@ -54,7 +56,7 @@ class SocialCubit extends Cubit<SocialStates> {
 
   // change the bottom nav bar index
   void changeBottomNavBar(index) {
-    if (index == 1) {
+    if (index == 1 || index == 3) {
       // get all user to chat
       getAllUsersData();
     }
@@ -183,6 +185,7 @@ class SocialCubit extends Cubit<SocialStates> {
       bio: bio,
       image: image ?? userModel!.image,
       cover: cover ?? userModel!.cover,
+      
     );
 
     FirebaseFirestore.instance
@@ -275,20 +278,11 @@ class SocialCubit extends Cubit<SocialStates> {
 
 //================================================================================================================================
 
-  // list of the posts
-  List<PostModel> postList = [];
-
-  // list of the posts id
+  // list that contains post id
   List<String> postId = [];
 
-  // list of list of the likes
-  List<List<LikeModel>> likes = [];
-
-  // list of the boolean to check if the loggedIn user is did like on the post or not
-  List<bool> isLikedPostList = [];
-
-  // list of list of the comments
-  List<List<CommentModel>> comments = [];
+  // list that contains data of all posts
+  List<PostDataModel> allpostsData = [];
 
   // get all the posts data
   void getPostsData({bool loadMore = false}) async {
@@ -298,12 +292,10 @@ class SocialCubit extends Cubit<SocialStates> {
       Query postQuery = FirebaseFirestore.instance.collection('posts');
 
       // if the user need to show more
+      // If loading more and we have existing posts, fetch next batch after the last post
       if (loadMore && postId.isNotEmpty) {
-        // If loading more and we have existing posts, fetch next batch after the last post
-        if (loadMore && postId.isNotEmpty) {
-          postQuery =
-              postQuery.orderBy(FieldPath.documentId).startAfter([postId.last]);
-        }
+        postQuery =
+            postQuery.orderBy(FieldPath.documentId).startAfter([postId.last]);
       }
 
       // get 3 posts only every time
@@ -332,13 +324,20 @@ class SocialCubit extends Cubit<SocialStates> {
           }
 
           // store all data in the lists
-          comments.add(commentUser);
-          postList.add(
-              PostModel.fromJson(postSnapshot.data() as Map<String, dynamic>));
-          postId.add(postSnapshot.id);
-          likes.add(likesUsers);
           bool isLiked = likesUsers.any((like) => like.uId == userModel!.uId);
-          isLikedPostList.add(isLiked);
+
+          // Create PostData instance
+          PostDataModel postData = PostDataModel(
+            post:
+                PostModel.fromJson(postSnapshot.data() as Map<String, dynamic>),
+            likes: likesUsers,
+            comments: commentUser,
+            isLiked: isLiked,
+          );
+
+          // Store post data in the map
+          postId.add(postSnapshot.id);
+          allpostsData.add(postData);
         }
         emit(SocialGetPostSuccessState());
       } else {
@@ -367,8 +366,8 @@ class SocialCubit extends Cubit<SocialStates> {
           .collection('likes')
           .add(model.toMap());
 
-      likes[index].add(model);
-      isLikedPostList[index] = true;
+      allpostsData[index].likes.add(model);
+      allpostsData[index].isLiked = true;
 
       emit(SocialLikePostSuccessState());
       return true; // Return true to indicate success
@@ -397,8 +396,10 @@ class SocialCubit extends Cubit<SocialStates> {
             .delete(); // Delete the first document directly (unique)
       });
 
-      likes[index].removeWhere((like) => like.uId == userModel!.uId);
-      isLikedPostList[index] = false;
+      allpostsData[index]
+          .likes
+          .removeWhere((like) => like.uId == userModel!.uId);
+      allpostsData[index].isLiked = false;
 
       emit(SocialUnlikePostSuccessState());
       return true; // Return true to indicate success
@@ -413,6 +414,9 @@ class SocialCubit extends Cubit<SocialStates> {
   // get all users
   List<UserModel> users = [];
 
+  // list to search for users
+  List<UserModel> usersSearch = [];
+
   void getAllUsersData() {
     emit(SocialGetAllUsersLoadingState());
     if (users.isEmpty) {
@@ -424,6 +428,9 @@ class SocialCubit extends Cubit<SocialStates> {
               users.add(UserModel.fromJson(element.data()));
             }
           }
+
+          // store all users in the search list
+          usersSearch = users;
         }
         emit(SocialGetAllUsersSuccessState());
       }).catchError((error) {
@@ -434,6 +441,32 @@ class SocialCubit extends Cubit<SocialStates> {
 
 //================================================================================================================================
 
+  void searchUsers({required String name}) {
+    emit(SocialGetSearchUsersLoadingState());
+    FirebaseFirestore.instance
+        .collection('users')
+        .orderBy("name")
+        .startAt([name])
+        .endAt(["$name\uf8ff"])
+        .get()
+        .then((value) {
+          usersSearch = [];
+          if (value.docs.isNotEmpty) {
+            for (var element in value.docs) {
+              // store all search users in the list expect the loggedIn user
+              if (element.data()['uId'] != userModel!.uId) {
+                usersSearch.add(UserModel.fromJson(element.data()));
+              }
+            }
+          }
+          emit(SocialGetSearchUsersSuccessState());
+        })
+        .catchError((error) {
+          emit(SocialGetSearchUsersErrorState(error.toString()));
+        });
+  }
+
+//================================================================================================================================
   // send message to specific user
   void sendMessage({
     required String receiverId,
@@ -525,7 +558,7 @@ class SocialCubit extends Cubit<SocialStates> {
         .collection('comments')
         .add(model.toMap())
         .then((value) {
-      comments[index].add(model);
+      allpostsData[index].comments.add(model);
 
       emit(SocialCommentPostSuccessState());
     }).catchError((error) {
@@ -535,8 +568,128 @@ class SocialCubit extends Cubit<SocialStates> {
 
 //================================================================================================================================
 
-  void rebuildComments(){
-    emit(SocialCommentPostSuccessState());
+// get posts of logged in user
+
+// list that contains post id of logged in user
+  List<String> loggedInUserpostId = [];
+
+  // list that contains data of logged in posts
+  List<PostDataModel> loggedInUserpostsData = [];
+
+  // get all the posts data
+  void getLoggedInUserPostsData({bool loadMore = false}) async {
+    emit(SocialGetPostLoadingState());
+
+    try {
+      Query postQuery = FirebaseFirestore.instance.collection('posts');
+
+      // if the user need to show more
+      // If loading more and we have existing posts, fetch next batch after the last post
+      if (loadMore && postId.isNotEmpty) {
+        postQuery =
+            postQuery.orderBy(FieldPath.documentId).startAfter([postId.last]);
+      }
+
+      // get 3 posts only every time
+      QuerySnapshot postQuerySnapshot =
+          await postQuery.where("uId", isEqualTo: uId).limit(3).get();
+
+      if (postQuerySnapshot.docs.isNotEmpty) {
+        for (QueryDocumentSnapshot postSnapshot in postQuerySnapshot.docs) {
+          List<LikeModel> likesUsers = [];
+          List<CommentModel> commentUser = [];
+
+          // get likes of the post
+          QuerySnapshot likesQuerySnapshot =
+              await postSnapshot.reference.collection('likes').get();
+          for (var userSnapshot in likesQuerySnapshot.docs) {
+            likesUsers.add(LikeModel.fromJson(
+                userSnapshot.data() as Map<String, dynamic>));
+          }
+
+          // get comments of the post
+          QuerySnapshot commentsQuerySnapshot =
+              await postSnapshot.reference.collection('comments').get();
+
+          for (var userSnapshot in commentsQuerySnapshot.docs) {
+            commentUser.add(CommentModel.fromJson(
+                userSnapshot.data() as Map<String, dynamic>));
+          }
+
+          // store all data in the lists
+          bool isLiked = likesUsers.any((like) => like.uId == userModel!.uId);
+
+          // Create PostData instance
+          PostDataModel postData = PostDataModel(
+            post:
+                PostModel.fromJson(postSnapshot.data() as Map<String, dynamic>),
+            likes: likesUsers,
+            comments: commentUser,
+            isLiked: isLiked,
+          );
+
+          // Store post data in the map
+          loggedInUserpostId.add(postSnapshot.id);
+          loggedInUserpostsData.add(postData);
+        }
+        emit(SocialGetLoggedInUserPostSuccessState());
+      } else {
+        emit(SocialGetLoggedInUserPostEmptyState());
+      }
+    } catch (error) {
+      emit(SocialGetLoggedInUserPostErrorState(error.toString()));
+    }
+  }
+
+//================================================================================================================================
+
+// get posts of user profile
+
+//================================================================================================================================
+
+  // send message to specific user
+  void followUser({
+    required String followingUserId,
+    required String followingUserName,
+    required String followingUserImage,
+    required String followingUserBio,
+  }) {
+    FollowModel followingModel = FollowModel(
+      uId: followingUserId,
+      name: followingUserName,
+      image: followingUserImage,
+      bio: followingUserBio,
+    );
+
+    // add this user to the following list of the logged in user
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(userModel!.uId)
+        .collection('followings')
+        .add(followingModel.toMap())
+        .then((value) {
+      emit(SocialFollowUserSuccessState());
+    }).catchError((error) {
+      emit(SocialFollowUserErrorState());
+    });
+
+    FollowModel followerModel = FollowModel(
+      uId: userModel!.uId,
+      name: userModel!.name,
+      image: userModel!.image ,
+      bio: userModel!.bio,
+    );
+    // add logged in user to the followers of the following user 
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(followingUserId)
+        .collection('followers')
+        .add(followerModel.toMap())
+        .then((value) {
+      emit(SocialFollowUserSuccessState());
+    }).catchError((error) {
+      emit(SocialFollowUserErrorState());
+    });
   }
 }
 

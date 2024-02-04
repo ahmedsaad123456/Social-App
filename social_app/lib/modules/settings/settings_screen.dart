@@ -16,68 +16,47 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<SocialCubit, SocialStates>(
-      listener: (context, state) {},
+      listener: (context, state) {
+        // if there is no posts
+        if (state is SocialGetLoggedInUserPostEmptyState) {
+          messageScreen(
+              message: "create more posts", state: ToastStates.WARNING);
+        } else if (state is SocialGetLoggedInUserPostErrorState) {
+          messageScreen(
+              message: "Check your internet connection",
+              state: ToastStates.ERROR);
+        }
+      },
       builder: (context, state) {
         var userModel = SocialCubit.get(context).userModel;
+        // var postList = SocialCubit.get(context).loggedInUserpostsData;
+
         return ConditionalBuilder(
           condition: userModel != null,
-          builder: (context) => Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              children: [
-                Container(
-                  height: 190.0,
-                  child: Stack(
-                    alignment: AlignmentDirectional.bottomCenter,
-                    children: [
-                      Align(
-                        alignment: AlignmentDirectional.topCenter,
-                        child: Container(
-                          height: 140.0,
-                          width: double.infinity,
-                          decoration: const BoxDecoration(
-                            borderRadius: BorderRadius.only(
-                                topLeft: Radius.circular(4.0),
-                                topRight: Radius.circular(4.0)),
-                          ),
-                          // Use the loadingBuilder property of NetworkImage to show a placeholder while the image is loading
-                          child: Image.network(
-                            userModel!.cover!,
-                            fit: BoxFit.cover,
-                            loadingBuilder: (BuildContext context, Widget child,
-                                ImageChunkEvent? loadingProgress) {
-                              if (loadingProgress == null) {
-                                return child; // Return the main image when it's loaded
-                              } else {
-                                // Return a placeholder while the image is loading
-                                return const Center(
-                                  child: Image(
-                                      image: AssetImage(
-                                          'assets/images/white.jpeg')),
-                                );
-                              }
-                            },
-                            errorBuilder: (context, error, stackTrace) {
-                              return const Image(
-                                  image: AssetImage(
-                                      'assets/images/white.jpeg')); // Show an error icon if image loading fails
-                            },
-                          ),
-                        ),
-                      ),
-                      CircleAvatar(
-                        radius: 64.0,
-                        backgroundColor:
-                            Theme.of(context).scaffoldBackgroundColor,
-                        child: CircleAvatar(
-                          radius: 60.0,
-                          backgroundColor:
-                              Colors.white, // Set background color to white
-                          child: ClipOval(
+          builder: (context) => SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                children: [
+                  Container(
+                    height: 190.0,
+                    child: Stack(
+                      alignment: AlignmentDirectional.bottomCenter,
+                      children: [
+                        Align(
+                          alignment: AlignmentDirectional.topCenter,
+                          child: Container(
+                            height: 140.0,
+                            width: double.infinity,
+                            decoration: const BoxDecoration(
+                              borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(4.0),
+                                  topRight: Radius.circular(4.0)),
+                            ),
+                            // Use the loadingBuilder property of NetworkImage to show a placeholder while the image is loading
                             child: Image.network(
-                              userModel.image!,
-                              width: 120,
-                              height: 120,
+                              userModel!.cover!,
                               fit: BoxFit.cover,
                               loadingBuilder: (BuildContext context,
                                   Widget child,
@@ -95,147 +74,211 @@ class SettingsScreen extends StatelessWidget {
                               },
                               errorBuilder: (context, error, stackTrace) {
                                 return const Image(
-                                    image:
-                                        AssetImage('assets/images/white.jpeg'));
+                                    image: AssetImage(
+                                        'assets/images/white.jpeg')); // Show an error icon if image loading fails
                               },
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                        CircleAvatar(
+                          radius: 64.0,
+                          backgroundColor:
+                              Theme.of(context).scaffoldBackgroundColor,
+                          child: CircleAvatar(
+                            radius: 60.0,
+                            backgroundColor:
+                                Colors.white, // Set background color to white
+                            child: ClipOval(
+                              child: Image.network(
+                                userModel.image!,
+                                width: 120,
+                                height: 120,
+                                fit: BoxFit.cover,
+                                loadingBuilder: (BuildContext context,
+                                    Widget child,
+                                    ImageChunkEvent? loadingProgress) {
+                                  if (loadingProgress == null) {
+                                    return child; // Return the main image when it's loaded
+                                  } else {
+                                    // Return a placeholder while the image is loading
+                                    return const Center(
+                                      child: Image(
+                                          image: AssetImage(
+                                              'assets/images/white.jpeg')),
+                                    );
+                                  }
+                                },
+                                errorBuilder: (context, error, stackTrace) {
+                                  return const Image(
+                                      image: AssetImage(
+                                          'assets/images/white.jpeg'));
+                                },
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(
-                  height: 5.0,
-                ),
-                Text(
-                  '${userModel.name}',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                Text(
-                  '${userModel.bio}',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 20.0,
+                  const SizedBox(
+                    height: 5.0,
                   ),
-                  child: Row(
+                  Text(
+                    '${userModel.name}',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  Text(
+                    '${userModel.bio}',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 20.0,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: InkWell(
+                            onTap: () {},
+                            child: Column(
+                              children: [
+                                Text(
+                                  '100',
+                                  style: Theme.of(context).textTheme.titleLarge,
+                                ),
+                                Text(
+                                  'Posts',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: InkWell(
+                            onTap: () {},
+                            child: Column(
+                              children: [
+                                Text(
+                                  'userModel.followers.length',
+                                  style: Theme.of(context).textTheme.titleLarge,
+                                ),
+                                Text(
+                                  'Followers',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: InkWell(
+                            onTap: () {},
+                            child: Column(
+                              children: [
+                                Text(
+                                  'userModel.followings.length',
+                                  style: Theme.of(context).textTheme.titleLarge,
+                                ),
+                                Text(
+                                  'Followings',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Row(
                     children: [
                       Expanded(
-                        child: InkWell(
-                          onTap: () {},
-                          child: Column(
-                            children: [
-                              Text(
-                                '100',
-                                style: Theme.of(context).textTheme.titleLarge,
-                              ),
-                              Text(
-                                'Posts',
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                            ],
-                          ),
+                        child: OutlinedButton(
+                          onPressed: () {},
+                          child: const Text('Add Posts'),
                         ),
                       ),
-                      Expanded(
-                        child: InkWell(
-                          onTap: () {},
-                          child: Column(
-                            children: [
-                              Text(
-                                '10K',
-                                style: Theme.of(context).textTheme.titleLarge,
-                              ),
-                              Text(
-                                'Followers',
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                            ],
-                          ),
+                      const SizedBox(
+                        width: 10.0,
+                      ),
+                      OutlinedButton(
+                        onPressed: () {
+                          navigateTo(context, EditProfileScreen());
+                        },
+                        child: const Icon(
+                          IconBroken.Edit,
+                          size: 16.0,
                         ),
                       ),
-                      Expanded(
-                        child: InkWell(
-                          onTap: () {},
-                          child: Column(
-                            children: [
-                              Text(
-                                '64',
-                                style: Theme.of(context).textTheme.titleLarge,
-                              ),
-                              Text(
-                                'Followings',
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                            ],
-                          ),
+                      const SizedBox(
+                        width: 10.0,
+                      ),
+                      OutlinedButton(
+                        onPressed: () {
+                          signOut(context);
+                        },
+                        child: const Icon(
+                          Icons.exit_to_app,
+                          size: 16.0,
                         ),
                       ),
                     ],
                   ),
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () {},
-                        child: const Text('Add Posts'),
-                      ),
-                    ),
-                    const SizedBox(
-                      width: 10.0,
-                    ),
-                    OutlinedButton(
-                      onPressed: () {
-                        navigateTo(context, EditProfileScreen());
-                      },
-                      child: const Icon(
-                        IconBroken.Edit,
-                        size: 16.0,
-                      ),
-                    ),
-                    const SizedBox(
-                      width: 10.0,
-                    ),
-                    OutlinedButton(
-                      onPressed: () {
-                        signOut(context);
-                      },
-                      child: const Icon(
-                        Icons.exit_to_app,
-                        size: 16.0,
-                      ),
-                    ),
-                  ],
-                ),
-                // Row(
-                //   children: [
-                //     OutlinedButton(
-                //       onPressed: ()
-                //       {
-                //         FirebaseMessaging.instance.subscribeToTopic('announcements');
-                //       },
-                //       child: Text(
-                //         'subscribe',
-                //       ),
-                //     ),
-                //     SizedBox(
-                //       width: 20.0,
-                //     ),
-                //     OutlinedButton(
-                //       onPressed: ()
-                //       {
-                //         FirebaseMessaging.instance.unsubscribeFromTopic('announcements');
-                //       },
-                //       child: Text(
-                //         'unsubscribe',
-                //       ),
-                //     ),
-                //   ],
-                // ),
-              ],
+                  // Row(
+                  //   children: [
+                  //     OutlinedButton(
+                  //       onPressed: ()
+                  //       {
+                  //         FirebaseMessaging.instance.subscribeToTopic('announcements');
+                  //       },
+                  //       child: Text(
+                  //         'subscribe',
+                  //       ),
+                  //     ),
+                  //     SizedBox(
+                  //       width: 20.0,
+                  //     ),
+                  //     OutlinedButton(
+                  //       onPressed: ()
+                  //       {
+                  //         FirebaseMessaging.instance.unsubscribeFromTopic('announcements');
+                  //       },
+                  //       child: Text(
+                  //         'unsubscribe',
+                  //       ),
+                  //     ),
+                  //   ],
+                  // ),
+                  // ListView.separated(
+                  //   shrinkWrap: true,
+                  //   physics: const NeverScrollableScrollPhysics(),
+                  //   separatorBuilder: (context, index) => const SizedBox(
+                  //     height: 8.0,
+                  //   ),
+                  //   itemBuilder: (context, index) =>
+                  //       buildPostItem(context, postList[index].post, index),
+                  //   itemCount: postList.length,
+                  // ),
+                  // const SizedBox(
+                  //   height: 10.0,
+                  // ),
+                  // // show more posts
+                  // ConditionalBuilder(
+                  //   condition: state is! SocialGetLoggedInUserPostLoadingState,
+                  //   builder: (context) => defaultTextButton(
+                  //       fun: () {
+                  //         SocialCubit.get(context).getLoggedInUserPostsData(loadMore: true);
+                  //       },
+                  //       text: "show more"),
+                  //   fallback: (context) =>
+                  //       const Center(child: CircularProgressIndicator()),
+                  // ),
+                  // const SizedBox(
+                  //   height: 8.0,
+                  // ),
+                ],
+              ),
             ),
           ),
           fallback: (context) =>
@@ -257,11 +300,10 @@ void signOut(context) {
       // If the token is successfully removed, reset user-related data in the HomeCubit.
       uId = null;
       SocialCubit.get(context).userModel = null;
-      SocialCubit.get(context).postList = [];
       SocialCubit.get(context).postId = [];
-      SocialCubit.get(context).comments = [];
-      SocialCubit.get(context).likes = [];
-      SocialCubit.get(context).isLikedPostList = [];
+      SocialCubit.get(context).allpostsData = [];
+      SocialCubit.get(context).users = [];
+      SocialCubit.get(context).usersSearch = [];
       SocialCubit.get(context).changeBottomNavBar(0);
 
       // Navigate to the LoginScreen after signing out.

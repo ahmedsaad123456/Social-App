@@ -1,28 +1,32 @@
-import 'package:conditional_builder_null_safety/conditional_builder_null_safety.dart'; 
+import 'package:conditional_builder_null_safety/conditional_builder_null_safety.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:social_app/layouts/cubit/social_cubit.dart'; 
+import 'package:social_app/layouts/cubit/social_cubit.dart';
 import 'package:social_app/layouts/social_layout.dart';
-import 'package:social_app/modules/register/cubit/register_cubit.dart'; 
-import 'package:social_app/modules/register/cubit/register_states.dart'; 
+import 'package:social_app/modules/register/cubit/register_cubit.dart';
+import 'package:social_app/modules/register/cubit/register_states.dart';
 import 'package:social_app/shared/components/components.dart';
 import 'package:social_app/shared/components/constants.dart';
-import 'package:social_app/shared/network/local/cache_helper.dart'; 
+import 'package:social_app/shared/network/local/cache_helper.dart';
 
 //================================================================================================================================
 
 class RegisterScreen extends StatelessWidget {
-  RegisterScreen({super.key}); 
-  final emailController = TextEditingController(); // Controller for email input field
-  final passwordController = TextEditingController(); // Controller for password input field
-  final nameController = TextEditingController(); // Controller for name input field
-  final phoneController = TextEditingController(); // Controller for phone input field
+  RegisterScreen({super.key});
+  final emailController =
+      TextEditingController(); // Controller for email input field
+  final passwordController =
+      TextEditingController(); // Controller for password input field
+  final nameController =
+      TextEditingController(); // Controller for name input field
+  final phoneController =
+      TextEditingController(); // Controller for phone input field
 
   final formKey = GlobalKey<FormState>(); // Form key for form validation
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider( 
+    return BlocProvider(
       create: (context) => RegisterCubit(), // Create instance of RegisterCubit
       child: BlocConsumer<RegisterCubit, RegisterStates>(
           listener: (context, state) {
@@ -30,11 +34,12 @@ class RegisterScreen extends StatelessWidget {
           // Show success message on successful registration
           messageScreen(
               message: 'Register Success', state: ToastStates.SUCCESS);
-              // Save user ID in cache helper
+          // Save user ID in cache helper
           CacheHelper.saveData(key: 'uId', value: state.uId).then((value) {
             uId = state.uId;
             SocialCubit.get(context).getUserData();
             SocialCubit.get(context).getPostsData();
+            SocialCubit.get(context).getLoggedInUserPostsData();
             navigateAndFinish(
                 context, const SocialLayout()); // Navigate to main app layout
           });
@@ -44,7 +49,7 @@ class RegisterScreen extends StatelessWidget {
         }
       }, builder: (context, state) {
         return Scaffold(
-          appBar: AppBar(), 
+          appBar: AppBar(),
           body: Center(
             child: SingleChildScrollView(
               child: Padding(
@@ -55,7 +60,7 @@ class RegisterScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'REGISTER', 
+                        'REGISTER',
                         style: Theme.of(context)
                             .textTheme
                             .headlineMedium!
@@ -64,7 +69,7 @@ class RegisterScreen extends StatelessWidget {
                             ),
                       ),
                       Text(
-                        'Register now to communicate with friends', 
+                        'Register now to communicate with friends',
                         style:
                             Theme.of(context).textTheme.titleMedium!.copyWith(
                                   color: Colors.grey,
@@ -76,21 +81,21 @@ class RegisterScreen extends StatelessWidget {
                       defaultFormField(
                           controller: nameController,
                           type: TextInputType.name,
-                          label: 'Name', 
+                          label: 'Name',
                           validate: (value) {
                             if (value!.isEmpty) {
                               return 'please enter your name';
                             }
                             return null;
                           },
-                          prefix: Icons.person), 
+                          prefix: Icons.person),
                       const SizedBox(
                         height: 15.0,
                       ),
                       defaultFormField(
                           controller: emailController,
                           type: TextInputType.emailAddress,
-                          label: 'Email', 
+                          label: 'Email',
                           validate: (value) {
                             if (value!.isEmpty) {
                               return 'please enter your email address';
@@ -124,7 +129,7 @@ class RegisterScreen extends StatelessWidget {
                       defaultFormField(
                           controller: phoneController,
                           type: TextInputType.phone,
-                          label: 'Phone', 
+                          label: 'Phone',
                           validate: (value) {
                             if (value!.isEmpty) {
                               return 'please enter your phone';
@@ -141,7 +146,7 @@ class RegisterScreen extends StatelessWidget {
                               );
                             }
                           },
-                          prefix: Icons.phone), 
+                          prefix: Icons.phone),
                       const SizedBox(
                         height: 30.0,
                       ),
@@ -158,10 +163,10 @@ class RegisterScreen extends StatelessWidget {
                                 );
                               }
                             },
-                            text: 'REGISTER', 
+                            text: 'REGISTER',
                             isUpperCase: true),
                         fallback: (context) =>
-                            const Center(child: CircularProgressIndicator()), 
+                            const Center(child: CircularProgressIndicator()),
                       ),
                       const SizedBox(
                         height: 15.0,

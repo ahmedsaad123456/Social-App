@@ -1,3 +1,5 @@
+//================================================================================================================================
+
 import 'package:conditional_builder_null_safety/conditional_builder_null_safety.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -8,8 +10,14 @@ import 'package:social_app/modules/chat_details/chat_details_screen.dart';
 import 'package:social_app/shared/components/components.dart';
 import 'package:social_app/shared/styles/icon_broken.dart';
 
-class UsersScreen extends StatelessWidget {
-  const UsersScreen({super.key});
+//================================================================================================================================
+// This screen allows users to search for users
+
+class UsersSearchScreen extends StatelessWidget {
+  UsersSearchScreen({super.key});
+
+  final searchController = TextEditingController();
+  final formKey = GlobalKey<FormState>();
 
 //================================================================================================================================
 
@@ -18,22 +26,55 @@ class UsersScreen extends StatelessWidget {
     return BlocConsumer<SocialCubit, SocialStates>(
       listener: (context, state) {},
       builder: (context, state) {
-        var users = SocialCubit.get(context).users;
-        return ConditionalBuilder(
-          condition: users.isNotEmpty,
-          builder: (context) => ListView.separated(
-              physics: const BouncingScrollPhysics(),
-              itemBuilder: (context, index) =>
-                  buildUserItem(users[index], context),
-              separatorBuilder: (context, index) => myDivider(),
-              itemCount: users.length),
-          fallback: (context) => const Center(
-            child: CircularProgressIndicator(),
+        var list = SocialCubit.get(context).usersSearch;
+        return Scaffold(
+          appBar: AppBar(),
+          body: Form(
+            key: formKey,
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: defaultFormField(
+                    controller: searchController,
+                    type: TextInputType.text,
+                    label: 'Search',
+                    validate: (value) {
+                      if (value!.isEmpty) {
+                        return 'Search must not be empty';
+                      }
+                      return null;
+                    },
+                    prefix: Icons.search,
+                    onChange: (value) {
+                      SocialCubit.get(context).searchUsers(name: value);
+                    },
+                  ),
+                ),
+                const SizedBox(height: 10.0,),
+                if (state is SocialGetSearchUsersLoadingState) const LinearProgressIndicator(),
+                Expanded(child: searchBuilder(list, context, isSearch: true)),
+              ],
+            ),
           ),
         );
       },
     );
   }
+
+//================================================================================================================================
+
+  // Widget to build the search results
+  Widget searchBuilder(List<UserModel> list, context, {isSearch = false}) => ConditionalBuilder(
+    condition: list.isNotEmpty ,
+    builder: (context) => ListView.separated(
+      physics: const BouncingScrollPhysics(),
+      itemBuilder: (context, index) => buildUserItem(list[index], context),
+      separatorBuilder: (context, index) => myDivider(),
+      itemCount: list.length, 
+    ),
+    fallback: (context) => isSearch ? Container() : const Center(child: CircularProgressIndicator()),
+  );
 
 //================================================================================================================================
 
@@ -94,18 +135,6 @@ class UsersScreen extends StatelessWidget {
                 ],
               ),
             ),
-            defaultButton(
-                function: () {
-                  SocialCubit.get(context).followUser(
-                      followingUserId: model.uId!,
-                      followingUserName: model.name!,
-                      followingUserImage: model.image!,
-                      followingUserBio: model.bio!);
-                },
-                text: 'Follow',
-                width: 100,
-                ),
-            const SizedBox(width: 5),
             IconButton(
               icon: const Icon(
                 IconBroken.Message, // Notification icon
@@ -120,6 +149,7 @@ class UsersScreen extends StatelessWidget {
     );
   }
 }
-
 //================================================================================================================================
 
+
+//================================================================================================================================

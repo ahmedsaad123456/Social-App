@@ -134,7 +134,7 @@ class CommentsScreen extends StatelessWidget {
   Widget buildNumberOfLikes(context, index) => InkWell(
         onTap: () {
           navigateTo(context,
-              LikesScreen(SocialCubit.get(context).likes[index], index));
+              LikesScreen(SocialCubit.get(context).allpostsData[index].likes, index));
         },
         child: Padding(
           padding: const EdgeInsets.symmetric(
@@ -151,7 +151,7 @@ class CommentsScreen extends StatelessWidget {
                 width: 5.0,
               ),
               Text(
-                '${SocialCubit.get(context).likes[index].length}',
+                '${SocialCubit.get(context).allpostsData[index].likes.length}',
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
             ],
