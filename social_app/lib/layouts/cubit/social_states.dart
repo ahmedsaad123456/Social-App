@@ -168,8 +168,18 @@ class SocialGetLoggedInUserPostEmptyState extends SocialStates{}
 
 // follow user
 
+class SocialFollowUserLoadingState extends SocialStates {}
+
 class SocialFollowUserSuccessState extends SocialStates {}
 
 class SocialFollowUserErrorState extends SocialStates {}
 
+
+// unfollow user
+
+class SocialUnFollowUserLoadingState extends SocialStates {}
+
+class SocialUnFollowUserSuccessState extends SocialStates {}
+
+class SocialUnFollowUserErrorState extends SocialStates {}
 

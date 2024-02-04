@@ -80,7 +80,7 @@ class ChatDetailsScreen extends StatelessWidget {
                             physics: const BouncingScrollPhysics(),
                             itemBuilder: (context, index) {
                               // if the message was sent by the loggedIn user
-                              if (SocialCubit.get(context).userModel!.uId ==
+                              if (SocialCubit.get(context).userDataModel!.user.uId ==
                                   SocialCubit.get(context)
                                       .messages[index]
                                       .senderId) {

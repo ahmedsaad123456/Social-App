@@ -39,6 +39,8 @@ class UsersScreen extends StatelessWidget {
 
   // build user item
   Widget buildUserItem(UserModel model, context) {
+    bool isFollow =
+        SocialCubit.get(context).isInMyFollowings(followingUserId: model.uId!);
     return InkWell(
       onTap: () {},
       child: Padding(
@@ -95,16 +97,20 @@ class UsersScreen extends StatelessWidget {
               ),
             ),
             defaultButton(
-                function: () {
-                  SocialCubit.get(context).followUser(
-                      followingUserId: model.uId!,
-                      followingUserName: model.name!,
-                      followingUserImage: model.image!,
-                      followingUserBio: model.bio!);
-                },
-                text: 'Follow',
-                width: 100,
-                ),
+              function: () {
+                !isFollow
+                    ? SocialCubit.get(context).followUser(
+                        followingUserId: model.uId!,
+                        followingUserName: model.name!,
+                        followingUserImage: model.image!,
+                        followingUserBio: model.bio!)
+                    : SocialCubit.get(context)
+                        .unFollowUser(followingUserId: model.uId!);
+                isFollow = !isFollow;
+              },
+              text: isFollow ? "UnFollow" : "follow",
+              width: 115,
+            ),
             const SizedBox(width: 5),
             IconButton(
               icon: const Icon(

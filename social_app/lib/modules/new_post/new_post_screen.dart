@@ -66,7 +66,7 @@ class NewPostScreen extends StatelessWidget {
                           Colors.white, // Set background color to white
                       child: ClipOval(
                         child: Image.network(
-                          SocialCubit.get(context).userModel!.image!,
+                          SocialCubit.get(context).userDataModel!.user.image!,
                           width: 50,
                           height: 50,
                           fit: BoxFit.cover,
@@ -100,7 +100,7 @@ class NewPostScreen extends StatelessWidget {
                           Row(
                             children: [
                               Text(
-                                SocialCubit.get(context).userModel!.name ?? '',
+                                SocialCubit.get(context).userDataModel!.user.name ?? '',
                                 style: const TextStyle(height: 1.4),
                               ),
                             ],

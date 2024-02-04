@@ -444,7 +444,7 @@ PreferredSizeWidget defaultAppBar({
                             Colors.white, // Set background color to white
                         child: ClipOval(
                           child: Image.network(
-                            SocialCubit.get(context).userModel!.image!,
+                            SocialCubit.get(context).userDataModel!.user.image!,
                             width: 50,
                             height: 50,
                             fit: BoxFit.cover,

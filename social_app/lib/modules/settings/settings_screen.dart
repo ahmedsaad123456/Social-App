@@ -28,11 +28,11 @@ class SettingsScreen extends StatelessWidget {
         }
       },
       builder: (context, state) {
-        var userModel = SocialCubit.get(context).userModel;
+        var userModel = SocialCubit.get(context).userDataModel!.user;
         // var postList = SocialCubit.get(context).loggedInUserpostsData;
 
         return ConditionalBuilder(
-          condition: userModel != null,
+          condition: SocialCubit.get(context).userDataModel != null,
           builder: (context) => SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
             child: Padding(
@@ -56,7 +56,7 @@ class SettingsScreen extends StatelessWidget {
                             ),
                             // Use the loadingBuilder property of NetworkImage to show a placeholder while the image is loading
                             child: Image.network(
-                              userModel!.cover!,
+                              userModel.cover!,
                               fit: BoxFit.cover,
                               loadingBuilder: (BuildContext context,
                                   Widget child,
@@ -160,7 +160,7 @@ class SettingsScreen extends StatelessWidget {
                             child: Column(
                               children: [
                                 Text(
-                                  'userModel.followers.length',
+                                  '${SocialCubit.get(context).userDataModel!.followers.length}',
                                   style: Theme.of(context).textTheme.titleLarge,
                                 ),
                                 Text(
@@ -177,7 +177,7 @@ class SettingsScreen extends StatelessWidget {
                             child: Column(
                               children: [
                                 Text(
-                                  'userModel.followings.length',
+                                  '${SocialCubit.get(context).userDataModel!.followings.length}',
                                   style: Theme.of(context).textTheme.titleLarge,
                                 ),
                                 Text(
@@ -299,7 +299,9 @@ void signOut(context) {
     if (value) {
       // If the token is successfully removed, reset user-related data in the HomeCubit.
       uId = null;
-      SocialCubit.get(context).userModel = null;
+      SocialCubit.get(context).userDataModel = null;
+      SocialCubit.get(context).loggedInUserpostsData = [];
+      SocialCubit.get(context).loggedInUserpostId = [];
       SocialCubit.get(context).postId = [];
       SocialCubit.get(context).allpostsData = [];
       SocialCubit.get(context).users = [];
