@@ -44,7 +44,7 @@ class UserProfileScreen extends StatelessWidget {
                         SocialCubit.get(context)
                             .specificUserpostsData
                             .isNotEmpty) ||
-                    state is SocialGetSpecificUserPostEmptyState,
+                    SocialCubit.get(context).isPosts != null,
             builder: (context) {
               bool isFollow = SocialCubit.get(context).isInMyFollowings(
                   followingUserId: SocialCubit.get(context)

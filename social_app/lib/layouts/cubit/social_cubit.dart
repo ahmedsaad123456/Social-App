@@ -467,7 +467,6 @@ class SocialCubit extends Cubit<SocialStates> {
         emit(SocialGetPostEmptyState());
       }
     } catch (error) {
-
       emit(SocialGetPostErrorState(error.toString()));
     }
   }
@@ -520,7 +519,6 @@ class SocialCubit extends Cubit<SocialStates> {
       } else if (screen == ScreenType.PROFILE) {
         // If screen is PROFILE, update the likes list in specificUserpostsData
 
-        
         specificUserpostsData[index].likes.add(model);
         specificUserpostsData[index].isLiked = true;
 
@@ -531,7 +529,6 @@ class SocialCubit extends Cubit<SocialStates> {
           allpostsData[userPostIndex].likes.add(model);
           allpostsData[userPostIndex].isLiked = true;
         }
-
       }
 
       emit(SocialLikePostSuccessState());
@@ -596,7 +593,7 @@ class SocialCubit extends Cubit<SocialStates> {
               .removeWhere((like) => like.uId == userDataModel!.user.uId);
           allpostsData[userPostIndex].isLiked = false;
         }
-      } else if (screen == ScreenType.PROFILE){
+      } else if (screen == ScreenType.PROFILE) {
         // If screen is PROFILE, update the likes list in SpecificUserpostsData
 
         specificUserpostsData[index]
@@ -613,7 +610,6 @@ class SocialCubit extends Cubit<SocialStates> {
               .removeWhere((like) => like.uId == userDataModel!.user.uId);
           allpostsData[userPostIndex].isLiked = false;
         }
-
       }
 
       emit(SocialUnlikePostSuccessState());
@@ -796,7 +792,7 @@ class SocialCubit extends Cubit<SocialStates> {
           // If the postId is found in the list, update the comments list in the home
           allpostsData[userPostIndex].comments.add(model);
         }
-      } else if (screen == ScreenType.PROFILE){
+      } else if (screen == ScreenType.PROFILE) {
         // If screen is profile, update the comments list in specificUserpostsData
         specificUserpostsData[index].comments.add(model);
         // check if the post is in the posts of the home
@@ -978,6 +974,9 @@ class SocialCubit extends Cubit<SocialStates> {
   // DocumentSnapshot to keep track of the last document
   DocumentSnapshot? specificlastDocument;
 
+  // String to indicate that is no posts of specific user
+  String? isPosts;
+
   // get all the posts data
   void getSpecificUserPostsData(
       {bool loadMore = false, required String specificUserId}) async {
@@ -1041,6 +1040,7 @@ class SocialCubit extends Cubit<SocialStates> {
         }
         emit(SocialGetSpecificUserPostSuccessState());
       } else {
+        isPosts = "no";
         emit(SocialGetSpecificUserPostEmptyState());
       }
     } catch (error) {
@@ -1057,5 +1057,6 @@ class SocialCubit extends Cubit<SocialStates> {
     specificUserpostId = [];
     specificlastDocument = null;
     specificUserpostsData = [];
+    isPosts = null;
   }
 }
