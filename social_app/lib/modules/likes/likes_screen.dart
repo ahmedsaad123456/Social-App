@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:social_app/layouts/cubit/social_cubit.dart';
 import 'package:social_app/models/like_model.dart';
+import 'package:social_app/modules/user_profile/user_profile_screen.dart';
 import 'package:social_app/shared/components/components.dart';
 
 class LikesScreen extends StatelessWidget {
@@ -9,29 +11,44 @@ class LikesScreen extends StatelessWidget {
   // index of the post
   final int index;
 
-  const LikesScreen(this.likes, this.index, {super.key});
+  final ScreenType? screen;
+
+  const LikesScreen(this.likes, this.index, this.screen, {super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: defaultAppBar(
-            context: context,
-            title: 'Likes',
-            ),
+          context: context,
+          title: 'Likes',
+        ),
         body: SingleChildScrollView(
           child: ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemBuilder: (context, index) {
-                return buildLikesItem(likes[index] , context);
+                return buildLikesItem(likes[index], context, screen);
               },
               itemCount: likes.length),
         ));
   }
+
   // build like item
-  Widget buildLikesItem(LikeModel model, context) {
+  Widget buildLikesItem(LikeModel model, context, ScreenType? screen) {
     return InkWell(
       onTap: () {
+        if (screen != ScreenType.PROFILE) {
+          if (model.uId != SocialCubit.get(context).userDataModel!.user.uId) {
+            SocialCubit.get(context)
+                .getSpecificUserData(specificUserId: model.uId!);
+
+            navigateTo(context, const UserProfileScreen());
+          } else {
+            messageScreen(
+                message: "go to settings to show your profile",
+                state: ToastStates.WARNING);
+          }
+        }
       },
       child: Padding(
         padding: const EdgeInsets.all(20.0),

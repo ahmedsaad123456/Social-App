@@ -29,7 +29,7 @@ class SocialCubit extends Cubit<SocialStates> {
   // Data of logged in user
   UserDataModel? userDataModel;
 
-  void getUserData({bool loadMore = false}) async {
+  void getUserData() async {
     emit(SocialGetUserLoadingState());
 
     try {
@@ -71,9 +71,9 @@ class SocialCubit extends Cubit<SocialStates> {
 
       getPostsData();
 
-      emit(SocialGetPostSuccessState());
+      emit(SocialGetUserSuccessState());
     } catch (error) {
-      emit(SocialGetPostErrorState(error.toString()));
+      emit(SocialGetUserErrorState(error.toString()));
     }
   }
 
@@ -467,8 +467,7 @@ class SocialCubit extends Cubit<SocialStates> {
         emit(SocialGetPostEmptyState());
       }
     } catch (error) {
-      print("11111111111111111111111111111");
-      print(error.toString());
+
       emit(SocialGetPostErrorState(error.toString()));
     }
   }
@@ -518,6 +517,21 @@ class SocialCubit extends Cubit<SocialStates> {
           allpostsData[userPostIndex].likes.add(model);
           allpostsData[userPostIndex].isLiked = true;
         }
+      } else if (screen == ScreenType.PROFILE) {
+        // If screen is PROFILE, update the likes list in specificUserpostsData
+
+        
+        specificUserpostsData[index].likes.add(model);
+        specificUserpostsData[index].isLiked = true;
+
+        // Check if the post is in the posts of the home
+        int userPostIndex = postId.indexOf(postID);
+        if (userPostIndex != -1) {
+          // If the postId is found in the list, update the likes list in the home
+          allpostsData[userPostIndex].likes.add(model);
+          allpostsData[userPostIndex].isLiked = true;
+        }
+
       }
 
       emit(SocialLikePostSuccessState());
@@ -582,6 +596,24 @@ class SocialCubit extends Cubit<SocialStates> {
               .removeWhere((like) => like.uId == userDataModel!.user.uId);
           allpostsData[userPostIndex].isLiked = false;
         }
+      } else if (screen == ScreenType.PROFILE){
+        // If screen is PROFILE, update the likes list in SpecificUserpostsData
+
+        specificUserpostsData[index]
+            .likes
+            .removeWhere((like) => like.uId == userDataModel!.user.uId);
+        specificUserpostsData[index].isLiked = false;
+
+        // Check if the post is in the posts of the home
+        int userPostIndex = postId.indexOf(postID);
+        if (userPostIndex != -1) {
+          // If the postId is found in the list, update the likes list in the home
+          allpostsData[userPostIndex]
+              .likes
+              .removeWhere((like) => like.uId == userDataModel!.user.uId);
+          allpostsData[userPostIndex].isLiked = false;
+        }
+
       }
 
       emit(SocialUnlikePostSuccessState());
@@ -764,6 +796,16 @@ class SocialCubit extends Cubit<SocialStates> {
           // If the postId is found in the list, update the comments list in the home
           allpostsData[userPostIndex].comments.add(model);
         }
+      } else if (screen == ScreenType.PROFILE){
+        // If screen is profile, update the comments list in specificUserpostsData
+        specificUserpostsData[index].comments.add(model);
+        // check if the post is in the posts of the home
+        int userPostIndex = postId.indexOf(postID);
+
+        if (userPostIndex != -1) {
+          // If the postId is found in the list, update the comments list in the home
+          allpostsData[userPostIndex].comments.add(model);
+        }
       }
 
       emit(SocialCommentPostSuccessState());
@@ -771,10 +813,6 @@ class SocialCubit extends Cubit<SocialStates> {
       emit(SocialCommentPostErrorState());
     });
   }
-
-//================================================================================================================================
-
-// get posts of user profile
 
 //================================================================================================================================
 
@@ -872,6 +910,152 @@ class SocialCubit extends Cubit<SocialStates> {
     return userDataModel!.followings
         .any((following) => following.uId == followingUserId);
   }
-}
 
 //================================================================================================================================
+
+  // get data of specific user
+
+  UserDataModel? specificUserDataModel;
+
+  void getSpecificUserData({required String specificUserId}) async {
+    emit(SocialGetSpecificUserLoadingState());
+
+    try {
+      Query userQuery = FirebaseFirestore.instance
+          .collection('users')
+          .where('uId', isEqualTo: specificUserId);
+
+      QuerySnapshot userQuerySnapshot = await userQuery.get();
+      QueryDocumentSnapshot userSnapshot = userQuerySnapshot.docs.first;
+
+      List<FollowModel> followers = [];
+      List<FollowModel> followings = [];
+
+      // get followers of the user
+      QuerySnapshot followersQuerySnapshot =
+          await userSnapshot.reference.collection('followers').get();
+      for (var userSnapshot in followersQuerySnapshot.docs) {
+        followers.add(
+            FollowModel.fromJson(userSnapshot.data() as Map<String, dynamic>));
+      }
+
+      // get followings of the user
+      QuerySnapshot followingsQuerySnapshot =
+          await userSnapshot.reference.collection('followings').get();
+
+      for (var userSnapshot in followingsQuerySnapshot.docs) {
+        followings.add(
+            FollowModel.fromJson(userSnapshot.data() as Map<String, dynamic>));
+      }
+
+      // Create user data model instance
+      UserDataModel userData = UserDataModel(
+        user: UserModel.fromJson(userSnapshot.data() as Map<String, dynamic>),
+        followers: followers,
+        followings: followings,
+      );
+
+      specificUserDataModel = userData;
+
+      getSpecificUserPostsData(specificUserId: specificUserId);
+
+      emit(SocialGetSpecificUserSuccessState());
+    } catch (error) {
+      emit(SocialGetSpecificUserErrorState(error.toString()));
+    }
+  }
+
+//================================================================================================================================
+
+// get posts of Specific user
+
+// list that contains post id of Specific user
+  List<String> specificUserpostId = [];
+
+  // list that contains data of logged in posts
+  List<PostDataModel> specificUserpostsData = [];
+
+  // DocumentSnapshot to keep track of the last document
+  DocumentSnapshot? specificlastDocument;
+
+  // get all the posts data
+  void getSpecificUserPostsData(
+      {bool loadMore = false, required String specificUserId}) async {
+    emit(SocialGetSpecificUserPostLoadingState());
+
+    try {
+      Query postQuery = FirebaseFirestore.instance
+          .collection('posts')
+          .where("uId", isEqualTo: specificUserId)
+          .orderBy('dateTime', descending: true)
+          .limit(3);
+
+      // if the user need to show more
+      // If loading more and we have existing posts, fetch next batch after the last post
+      if (loadMore && specificlastDocument != null) {
+        postQuery = postQuery.startAfterDocument(specificlastDocument!);
+      }
+
+      // Execute the query
+      QuerySnapshot postQuerySnapshot = await postQuery.get();
+
+      if (postQuerySnapshot.docs.isNotEmpty) {
+        for (QueryDocumentSnapshot postSnapshot in postQuerySnapshot.docs) {
+          List<LikeModel> likesUsers = [];
+          List<CommentModel> commentUser = [];
+
+          // get likes of the post
+          QuerySnapshot likesQuerySnapshot =
+              await postSnapshot.reference.collection('likes').get();
+          for (var userSnapshot in likesQuerySnapshot.docs) {
+            likesUsers.add(LikeModel.fromJson(
+                userSnapshot.data() as Map<String, dynamic>));
+          }
+
+          // get comments of the post
+          QuerySnapshot commentsQuerySnapshot =
+              await postSnapshot.reference.collection('comments').get();
+
+          for (var userSnapshot in commentsQuerySnapshot.docs) {
+            commentUser.add(CommentModel.fromJson(
+                userSnapshot.data() as Map<String, dynamic>));
+          }
+
+          bool isLiked = likesUsers.any((like) => like.uId == uId);
+
+          // Create PostData instance
+          PostDataModel postData = PostDataModel(
+            post:
+                PostModel.fromJson(postSnapshot.data() as Map<String, dynamic>),
+            likes: likesUsers,
+            comments: commentUser,
+            isLiked: isLiked,
+          );
+
+          // Store post data in the map
+          specificUserpostId.add(postSnapshot.id);
+          specificUserpostsData.add(postData);
+
+          // Update the last document
+          specificlastDocument = postQuerySnapshot.docs.last;
+        }
+        emit(SocialGetSpecificUserPostSuccessState());
+      } else {
+        emit(SocialGetSpecificUserPostEmptyState());
+      }
+    } catch (error) {
+      emit(SocialGetSpecificUserPostErrorState(error.toString()));
+    }
+  }
+
+//================================================================================================================================
+
+// clear data of specific user
+
+  void clearSpecificUserData() {
+    specificUserDataModel = null;
+    specificUserpostId = [];
+    specificlastDocument = null;
+    specificUserpostsData = [];
+  }
+}

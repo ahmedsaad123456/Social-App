@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:social_app/layouts/cubit/social_cubit.dart';
 import 'package:social_app/models/comment_model.dart';
 import 'package:social_app/modules/likes/likes_screen.dart';
+import 'package:social_app/modules/user_profile/user_profile_screen.dart';
 import 'package:social_app/shared/components/components.dart';
 import 'package:social_app/shared/styles/icon_broken.dart';
 
@@ -12,7 +13,9 @@ class CommentsScreen extends StatelessWidget {
   // index of the post
   final int index;
 
-  const CommentsScreen(this.comments, this.index, {super.key});
+  final ScreenType? screen;
+
+  const CommentsScreen(this.comments, this.index, this.screen, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +23,7 @@ class CommentsScreen extends StatelessWidget {
         appBar: defaultAppBar(
             context: context,
             title: 'comments',
-            actions: [buildNumberOfLikes(context, index)]),
+            actions: [buildNumberOfLikes(context, index , screen)]),
         body: Column(
           children: [
             SingleChildScrollView(
@@ -28,7 +31,7 @@ class CommentsScreen extends StatelessWidget {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemBuilder: (context, index) {
-                    return buildCommentItem(comments[index]);
+                    return buildCommentItem(comments[index], context, screen);
                   },
                   itemCount: comments.length),
             ),
@@ -39,7 +42,7 @@ class CommentsScreen extends StatelessWidget {
   // =================================================================================================================
 
   // build comment item
-  Widget buildCommentItem(CommentModel comment) {
+  Widget buildCommentItem(CommentModel comment, context, ScreenType? screen) {
     return Padding(
       padding: const EdgeInsets.only(
         top: 20.0,
@@ -52,31 +55,51 @@ class CommentsScreen extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(
-                radius: 18.0,
-                backgroundColor: Colors.white, // Set background color to white
-                child: ClipOval(
-                  child: Image.network(
-                    comment.image!,
-                    width: 50,
-                    height: 50,
-                    fit: BoxFit.cover,
-                    loadingBuilder: (BuildContext context, Widget child,
-                        ImageChunkEvent? loadingProgress) {
-                      if (loadingProgress == null) {
-                        return child; // Return the main image when it's loaded
-                      } else {
-                        // Return a placeholder while the image is loading
-                        return const Center(
-                          child: Image(
-                              image: AssetImage('assets/images/white.jpeg')),
-                        );
-                      }
-                    },
-                    errorBuilder: (context, error, stackTrace) {
-                      return const Image(
-                          image: AssetImage('assets/images/white.jpeg'));
-                    },
+              InkWell(
+                onTap: () {
+                  if (screen != ScreenType.PROFILE) {
+                    if (comment.uId !=
+                        SocialCubit.get(context).userDataModel!.user.uId) {
+                      SocialCubit.get(context).clearSpecificUserData();
+
+                      SocialCubit.get(context)
+                          .getSpecificUserData(specificUserId: comment.uId!);
+
+                      navigateTo(context, const UserProfileScreen());
+                    } else {
+                      messageScreen(
+                          message: "go to settings to show your profile",
+                          state: ToastStates.WARNING);
+                    }
+                  }
+                },
+                child: CircleAvatar(
+                  radius: 18.0,
+                  backgroundColor:
+                      Colors.white, // Set background color to white
+                  child: ClipOval(
+                    child: Image.network(
+                      comment.image!,
+                      width: 50,
+                      height: 50,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (BuildContext context, Widget child,
+                          ImageChunkEvent? loadingProgress) {
+                        if (loadingProgress == null) {
+                          return child; // Return the main image when it's loaded
+                        } else {
+                          // Return a placeholder while the image is loading
+                          return const Center(
+                            child: Image(
+                                image: AssetImage('assets/images/white.jpeg')),
+                          );
+                        }
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Image(
+                            image: AssetImage('assets/images/white.jpeg'));
+                      },
+                    ),
                   ),
                 ),
               ),
@@ -131,10 +154,12 @@ class CommentsScreen extends StatelessWidget {
   // =================================================================================================================
 
   // number of likes on the post
-  Widget buildNumberOfLikes(context, index) => InkWell(
+  Widget buildNumberOfLikes(context, index , ScreenType? screen) => InkWell(
         onTap: () {
-          navigateTo(context,
-              LikesScreen(SocialCubit.get(context).allpostsData[index].likes, index));
+          navigateTo(
+              context,
+              LikesScreen(
+                  SocialCubit.get(context).allpostsData[index].likes, index , screen));
         },
         child: Padding(
           padding: const EdgeInsets.symmetric(

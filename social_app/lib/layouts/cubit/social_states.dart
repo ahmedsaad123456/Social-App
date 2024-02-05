@@ -183,3 +183,27 @@ class SocialUnFollowUserSuccessState extends SocialStates {}
 
 class SocialUnFollowUserErrorState extends SocialStates {}
 
+
+
+// get specific user data
+class SocialGetSpecificUserLoadingState extends SocialStates {}
+
+class SocialGetSpecificUserSuccessState extends SocialStates {}
+
+class SocialGetSpecificUserErrorState extends SocialStates {
+  final String error;
+  SocialGetSpecificUserErrorState(this.error);
+}
+
+
+// get Specific user posts data
+class SocialGetSpecificUserPostLoadingState extends SocialStates {}
+
+class SocialGetSpecificUserPostSuccessState extends SocialStates {}
+
+class SocialGetSpecificUserPostErrorState extends SocialStates {
+  final String error;
+  SocialGetSpecificUserPostErrorState(this.error);
+}
+
+class SocialGetSpecificUserPostEmptyState extends SocialStates{}

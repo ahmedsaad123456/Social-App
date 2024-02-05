@@ -4,7 +4,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:social_app/layouts/cubit/social_cubit.dart';
 import 'package:social_app/layouts/cubit/social_states.dart';
 import 'package:social_app/modules/edit_profile/edit_profile_screen.dart';
+import 'package:social_app/modules/follow_user/follow_user_screen.dart';
 import 'package:social_app/modules/login/login_screen.dart';
+import 'package:social_app/modules/new_post/new_post_screen.dart';
 import 'package:social_app/shared/components/components.dart';
 import 'package:social_app/shared/components/constants.dart';
 import 'package:social_app/shared/network/local/cache_helper.dart';
@@ -29,7 +31,6 @@ class SettingsScreen extends StatelessWidget {
       },
       builder: (context, state) {
         var userModel = SocialCubit.get(context).userDataModel!.user;
-        
 
         return ConditionalBuilder(
           condition: SocialCubit.get(context).userDataModel != null,
@@ -139,24 +140,15 @@ class SettingsScreen extends StatelessWidget {
                       children: [
                         Expanded(
                           child: InkWell(
-                            onTap: () {},
-                            child: Column(
-                              children: [
-                                Text(
-                                  '100',
-                                  style: Theme.of(context).textTheme.titleLarge,
-                                ),
-                                Text(
-                                  'Posts',
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: InkWell(
-                            onTap: () {},
+                            onTap: () {
+                              navigateTo(
+                                  context,
+                                  FollowUserScreen(
+                                      SocialCubit.get(context)
+                                          .userDataModel!
+                                          .followers,
+                                      'Followers' , ScreenType.SETTINGS));
+                            },
                             child: Column(
                               children: [
                                 Text(
@@ -173,7 +165,15 @@ class SettingsScreen extends StatelessWidget {
                         ),
                         Expanded(
                           child: InkWell(
-                            onTap: () {},
+                            onTap: () {
+                              navigateTo(
+                                  context,
+                                  FollowUserScreen(
+                                      SocialCubit.get(context)
+                                          .userDataModel!
+                                          .followings,
+                                      'Followings' , ScreenType.SETTINGS));
+                            },
                             child: Column(
                               children: [
                                 Text(
@@ -195,7 +195,9 @@ class SettingsScreen extends StatelessWidget {
                     children: [
                       Expanded(
                         child: OutlinedButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            navigateTo(context, NewPostScreen());
+                          },
                           child: const Text('Add Posts'),
                         ),
                       ),
@@ -250,8 +252,10 @@ class SettingsScreen extends StatelessWidget {
                   //     ),
                   //   ],
                   // ),
-                  
-                  const SizedBox(height: 5,),
+
+                  const SizedBox(
+                    height: 5,
+                  ),
                   // show my posts
                   ListView.separated(
                     shrinkWrap: true,
@@ -259,9 +263,14 @@ class SettingsScreen extends StatelessWidget {
                     separatorBuilder: (context, index) => const SizedBox(
                       height: 8.0,
                     ),
-                    itemBuilder: (context, index) =>
-                        buildPostItem(context, SocialCubit.get(context).loggedInUserpostsData[index],SocialCubit.get(context).loggedInUserpostId, index , ScreenType.SETTINGS),
-                    itemCount: SocialCubit.get(context).loggedInUserpostsData.length,
+                    itemBuilder: (context, index) => buildPostItem(
+                        context,
+                        SocialCubit.get(context).loggedInUserpostsData[index],
+                        SocialCubit.get(context).loggedInUserpostId,
+                        index,
+                        ScreenType.SETTINGS),
+                    itemCount:
+                        SocialCubit.get(context).loggedInUserpostsData.length,
                   ),
                   const SizedBox(
                     height: 10.0,
@@ -271,7 +280,8 @@ class SettingsScreen extends StatelessWidget {
                     condition: state is! SocialGetLoggedInUserPostLoadingState,
                     builder: (context) => defaultTextButton(
                         fun: () {
-                          SocialCubit.get(context).getLoggedInUserPostsData(loadMore: true);
+                          SocialCubit.get(context)
+                              .getLoggedInUserPostsData(loadMore: true);
                         },
                         text: "show more"),
                     fallback: (context) =>

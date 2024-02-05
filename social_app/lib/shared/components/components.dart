@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:like_button/like_button.dart';
 import 'package:social_app/layouts/cubit/social_cubit.dart';
+import 'package:social_app/models/follow_model.dart';
 import 'package:social_app/models/post_data_model.dart';
 import 'package:social_app/models/user_model.dart';
 import 'package:social_app/modules/chat_details/chat_details_screen.dart';
 import 'package:social_app/modules/comments/comments_screen.dart';
 import 'package:social_app/modules/likes/likes_screen.dart';
+import 'package:social_app/modules/user_profile/user_profile_screen.dart';
 import 'package:social_app/shared/styles/colors.dart';
 import 'package:social_app/shared/styles/icon_broken.dart';
 
@@ -141,7 +143,7 @@ Future<bool?> messageScreen({
 enum ToastStates { SUCCESS, ERROR, WARNING }
 
 // enum to indicate the position of the post
-enum ScreenType { HOME, SETTINGS }
+enum ScreenType { HOME, SETTINGS, PROFILE }
 //================================================================================================================================
 
 // return the color of the toast screen according to the state
@@ -242,81 +244,101 @@ Widget buildPostItem(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              // image of the user's post
-              CircleAvatar(
-                radius: 25.0,
-                backgroundColor: Colors.white, // Set background color to white
-                child: ClipOval(
-                  child: Image.network(
-                    model.post.image!,
-                    width: 50,
-                    height: 50,
-                    fit: BoxFit.cover,
-                    loadingBuilder: (BuildContext context, Widget child,
-                        ImageChunkEvent? loadingProgress) {
-                      if (loadingProgress == null) {
-                        return child; // Return the main image when it's loaded
-                      } else {
-                        // Return a placeholder while the image is loading
-                        return const Center(
-                          child: Image(
-                              image: AssetImage('assets/images/white.jpeg')),
-                        );
-                      }
-                    },
-                    errorBuilder: (context, error, stackTrace) {
-                      return const Image(
-                          image: AssetImage('assets/images/white.jpeg'));
-                    },
-                  ),
-                ),
-              ),
+          InkWell(
+            onTap: () {
+              if (screen != ScreenType.PROFILE) {
+                if (model.post.uId !=
+                    SocialCubit.get(context).userDataModel!.user.uId) {
+                  SocialCubit.get(context).clearSpecificUserData();
 
-              const SizedBox(
-                width: 15.0,
-              ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        // name of the user's post
-                        Text(
-                          '${model.post.name}',
-                        ),
-                        const SizedBox(
-                          width: 5.0,
-                        ),
-                        const Icon(
-                          Icons.check_circle,
-                          size: 16.0,
-                          color: defaultColor,
-                        )
-                      ],
+                  SocialCubit.get(context)
+                      .getSpecificUserData(specificUserId: model.post.uId!);
+
+                  navigateTo(context, const UserProfileScreen());
+                } else {
+                  messageScreen(
+                      message: "go to settings to show your profile",
+                      state: ToastStates.WARNING);
+                }
+              }
+            },
+            child: Row(
+              children: [
+                // image of the user's post
+                CircleAvatar(
+                  radius: 25.0,
+                  backgroundColor:
+                      Colors.white, // Set background color to white
+                  child: ClipOval(
+                    child: Image.network(
+                      model.post.image!,
+                      width: 50,
+                      height: 50,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (BuildContext context, Widget child,
+                          ImageChunkEvent? loadingProgress) {
+                        if (loadingProgress == null) {
+                          return child; // Return the main image when it's loaded
+                        } else {
+                          // Return a placeholder while the image is loading
+                          return const Center(
+                            child: Image(
+                                image: AssetImage('assets/images/white.jpeg')),
+                          );
+                        }
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Image(
+                            image: AssetImage('assets/images/white.jpeg'));
+                      },
                     ),
-                    Text(
-                      // dateTime of the post
-                      '${model.post.dateTime}'
-                          .substring(0, 16)
-                          .replaceAll('T', '  '),
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodySmall!
-                          .copyWith(height: 1.4),
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                  icon: const Icon(
-                    Icons.more_horiz,
-                    size: 16.0,
                   ),
-                  onPressed: () {}),
-            ],
+                ),
+
+                const SizedBox(
+                  width: 15.0,
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          // name of the user's post
+                          Text(
+                            '${model.post.name}',
+                          ),
+                          const SizedBox(
+                            width: 5.0,
+                          ),
+                          const Icon(
+                            Icons.check_circle,
+                            size: 16.0,
+                            color: defaultColor,
+                          )
+                        ],
+                      ),
+                      Text(
+                        // dateTime of the post
+                        '${model.post.dateTime}'
+                            .substring(0, 16)
+                            .replaceAll('T', '  '),
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodySmall!
+                            .copyWith(height: 1.4),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                    icon: const Icon(
+                      Icons.more_horiz,
+                      size: 16.0,
+                    ),
+                    onPressed: () {}),
+              ],
+            ),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(
@@ -361,7 +383,8 @@ Widget buildPostItem(
                   // number of likes on the post
                   child: InkWell(
                     onTap: () {
-                      navigateTo(context, LikesScreen(model.likes, index));
+                      navigateTo(
+                          context, LikesScreen(model.likes, index, screen));
                     },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
@@ -390,8 +413,8 @@ Widget buildPostItem(
                   // number of comments on the post
                   child: InkWell(
                     onTap: () {
-                      navigateTo(
-                          context, CommentsScreen(model.comments, index));
+                      navigateTo(context,
+                          CommentsScreen(model.comments, index, screen));
                     },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
@@ -553,7 +576,20 @@ Widget buildUserItem(UserModel model, context) {
   bool isFollow =
       SocialCubit.get(context).isInMyFollowings(followingUserId: model.uId!);
   return InkWell(
-    onTap: () {},
+    onTap: () {
+      if (model.uId != SocialCubit.get(context).userDataModel!.user.uId) {
+        SocialCubit.get(context).clearSpecificUserData();
+
+        SocialCubit.get(context)
+            .getSpecificUserData(specificUserId: model.uId!);
+
+        navigateTo(context, const UserProfileScreen());
+      } else {
+        messageScreen(
+            message: "go to settings to show your profile",
+            state: ToastStates.WARNING);
+      }
+    },
     child: Padding(
       padding: const EdgeInsets.all(20.0),
       child: Row(
@@ -631,6 +667,103 @@ Widget buildUserItem(UserModel model, context) {
               navigateTo(context, ChatDetailsScreen(model));
             },
           ),
+        ],
+      ),
+    ),
+  );
+}
+
+//========================================================================================================================
+
+// build follow user item
+Widget buildFollowUserItem(FollowModel model, context, ScreenType? screen) {
+  bool isFollow =
+      SocialCubit.get(context).isInMyFollowings(followingUserId: model.uId!);
+  return InkWell(
+    onTap: () {
+      if (screen != ScreenType.PROFILE) {
+        if (model.uId != SocialCubit.get(context).userDataModel!.user.uId) {
+          SocialCubit.get(context).clearSpecificUserData();
+          SocialCubit.get(context)
+              .getSpecificUserData(specificUserId: model.uId!);
+
+          navigateTo(context, const UserProfileScreen());
+        } else {
+          messageScreen(
+              message: "go to settings to show your profile",
+              state: ToastStates.WARNING);
+        }
+      }
+    },
+    child: Padding(
+      padding: const EdgeInsets.all(20.0),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 25.0,
+            backgroundColor: Colors.white, // Set background color to white
+            child: ClipOval(
+              child: Image.network(
+                model.image!,
+                width: 50,
+                height: 50,
+                fit: BoxFit.cover,
+                loadingBuilder: (BuildContext context, Widget child,
+                    ImageChunkEvent? loadingProgress) {
+                  if (loadingProgress == null) {
+                    return child; // Return the main image when it's loaded
+                  } else {
+                    // Return a placeholder while the image is loading
+                    return const Center(
+                      child:
+                          Image(image: AssetImage('assets/images/white.jpeg')),
+                    );
+                  }
+                },
+                errorBuilder: (context, error, stackTrace) {
+                  return const Image(
+                      image: AssetImage('assets/images/white.jpeg'));
+                },
+              ),
+            ),
+          ),
+          const SizedBox(
+            width: 15.0,
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(model.name ?? ""),
+                const SizedBox(
+                  height: 5,
+                ),
+                Text(
+                  model.bio ?? "",
+                  style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                        height: 1.4,
+                        color: Colors.grey,
+                      ),
+                ),
+              ],
+            ),
+          ),
+          if (model.uId != SocialCubit.get(context).userDataModel!.user.uId)
+            defaultButton(
+              function: () {
+                !isFollow
+                    ? SocialCubit.get(context).followUser(
+                        followingUserId: model.uId!,
+                        followingUserName: model.name!,
+                        followingUserImage: model.image!,
+                        followingUserBio: model.bio!)
+                    : SocialCubit.get(context)
+                        .unFollowUser(followingUserId: model.uId!);
+                isFollow = !isFollow;
+              },
+              text: isFollow ? "UnFollow" : "follow",
+              width: 115,
+            ),
         ],
       ),
     ),
