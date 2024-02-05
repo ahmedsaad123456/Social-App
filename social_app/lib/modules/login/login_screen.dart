@@ -37,7 +37,6 @@ class LoginScreen extends StatelessWidget {
           CacheHelper.saveData(key: 'uId', value: state.uId).then((value) {
             uId = state.uId;
             SocialCubit.get(context).getUserData();
-            SocialCubit.get(context).getPostsData();
             SocialCubit.get(context).getLoggedInUserPostsData();
 
             navigateAndFinish(

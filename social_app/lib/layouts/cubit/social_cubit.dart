@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -29,18 +28,6 @@ class SocialCubit extends Cubit<SocialStates> {
 
   // Data of logged in user
   UserDataModel? userDataModel;
-
-  // get data of the logged in user
-  // void getUserData() {
-  //   emit(SocialGetUserLoadingState());
-
-  //   FirebaseFirestore.instance.collection('users').doc(uId).get().then((value) {
-  //     userModel = UserModel.fromJson(value.data());
-  //     emit(SocialGetUserSuccessState());
-  //   }).catchError((error) {
-  //     emit(SocialGetUserErrorState(error));
-  //   });
-  // }
 
   void getUserData({bool loadMore = false}) async {
     emit(SocialGetUserLoadingState());
@@ -81,6 +68,8 @@ class SocialCubit extends Cubit<SocialStates> {
       );
 
       userDataModel = userData;
+
+      getPostsData();
 
       emit(SocialGetPostSuccessState());
     } catch (error) {
@@ -417,6 +406,12 @@ class SocialCubit extends Cubit<SocialStates> {
     emit(SocialGetPostLoadingState());
 
     try {
+      // get all the posts created by one of my followings
+      List<String> followingIds =
+          userDataModel!.followings.map((following) => following.uId!).toList();
+
+      followingIds.add(uId!);
+
       Query postQuery = FirebaseFirestore.instance.collection('posts');
 
       // if the user need to show more
@@ -427,7 +422,8 @@ class SocialCubit extends Cubit<SocialStates> {
       }
 
       // get 3 posts only every time
-      QuerySnapshot postQuerySnapshot = await postQuery.limit(3).get();
+      QuerySnapshot postQuerySnapshot =
+          await postQuery.where('uId', whereIn: followingIds).limit(3).get();
 
       if (postQuerySnapshot.docs.isNotEmpty) {
         for (QueryDocumentSnapshot postSnapshot in postQuerySnapshot.docs) {
@@ -471,6 +467,8 @@ class SocialCubit extends Cubit<SocialStates> {
         emit(SocialGetPostEmptyState());
       }
     } catch (error) {
+      print("11111111111111111111111111111");
+      print(error.toString());
       emit(SocialGetPostErrorState(error.toString()));
     }
   }
@@ -501,11 +499,9 @@ class SocialCubit extends Cubit<SocialStates> {
         allpostsData[index].likes.add(model);
         allpostsData[index].isLiked = true;
 
-        
         // Check if the post is in the posts of the logged in user
         int userPostIndex = loggedInUserpostId.indexOf(postID);
         if (userPostIndex != -1) {
-          
           // If the postId is found in the list, update the likes list in loggedInUserpostsData
           loggedInUserpostsData[userPostIndex].likes.add(model);
           loggedInUserpostsData[userPostIndex].isLiked = true;
