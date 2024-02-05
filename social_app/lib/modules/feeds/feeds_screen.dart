@@ -27,10 +27,9 @@ class FeedsScreen extends StatelessWidget {
         }
       },
       builder: (context, state) {
-        var postList = SocialCubit.get(context).allpostsData;
         return ConditionalBuilder(
           condition:
-              postList.isNotEmpty && SocialCubit.get(context).userDataModel != null,
+              SocialCubit.get(context).allpostsData.isNotEmpty && SocialCubit.get(context).userDataModel != null,
           builder: (context) => SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
             child: Column(
@@ -75,8 +74,8 @@ class FeedsScreen extends StatelessWidget {
                     height: 8.0,
                   ),
                   itemBuilder: (context, index) =>
-                      buildPostItem(context, postList[index].post, index),
-                  itemCount: postList.length,
+                      buildPostItem(context, SocialCubit.get(context).allpostsData[index],SocialCubit.get(context).postId, index , ScreenType.HOME),
+                  itemCount: SocialCubit.get(context).allpostsData.length,
                 ),
                 const SizedBox(
                   height: 10.0,

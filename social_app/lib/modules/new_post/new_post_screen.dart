@@ -34,15 +34,16 @@ class NewPostScreen extends StatelessWidget {
                     // if the post has image
                     if (SocialCubit.get(context).postImage != null) {
                       SocialCubit.get(context).uplaodPostImage(
-                          dateTime: DateTime.now().toString(),
+                          dateTime: DateTime.now().toIso8601String(),
                           text: textController.text);
                     }
 
                     // if the post hasn't image
                     else {
                       SocialCubit.get(context).createPost(
-                          dateTime: DateTime.now().toString(),
+                          dateTime: DateTime.now().toIso8601String(),
                           text: textController.text);
+                      textController.text = "";
                     }
                   },
                   text: 'POST'),
@@ -100,7 +101,11 @@ class NewPostScreen extends StatelessWidget {
                           Row(
                             children: [
                               Text(
-                                SocialCubit.get(context).userDataModel!.user.name ?? '',
+                                SocialCubit.get(context)
+                                        .userDataModel!
+                                        .user
+                                        .name ??
+                                    '',
                                 style: const TextStyle(height: 1.4),
                               ),
                             ],

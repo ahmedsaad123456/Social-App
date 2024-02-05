@@ -29,7 +29,7 @@ class SettingsScreen extends StatelessWidget {
       },
       builder: (context, state) {
         var userModel = SocialCubit.get(context).userDataModel!.user;
-        // var postList = SocialCubit.get(context).loggedInUserpostsData;
+        
 
         return ConditionalBuilder(
           condition: SocialCubit.get(context).userDataModel != null,
@@ -250,33 +250,36 @@ class SettingsScreen extends StatelessWidget {
                   //     ),
                   //   ],
                   // ),
-                  // ListView.separated(
-                  //   shrinkWrap: true,
-                  //   physics: const NeverScrollableScrollPhysics(),
-                  //   separatorBuilder: (context, index) => const SizedBox(
-                  //     height: 8.0,
-                  //   ),
-                  //   itemBuilder: (context, index) =>
-                  //       buildPostItem(context, postList[index].post, index),
-                  //   itemCount: postList.length,
-                  // ),
-                  // const SizedBox(
-                  //   height: 10.0,
-                  // ),
-                  // // show more posts
-                  // ConditionalBuilder(
-                  //   condition: state is! SocialGetLoggedInUserPostLoadingState,
-                  //   builder: (context) => defaultTextButton(
-                  //       fun: () {
-                  //         SocialCubit.get(context).getLoggedInUserPostsData(loadMore: true);
-                  //       },
-                  //       text: "show more"),
-                  //   fallback: (context) =>
-                  //       const Center(child: CircularProgressIndicator()),
-                  // ),
-                  // const SizedBox(
-                  //   height: 8.0,
-                  // ),
+                  
+                  const SizedBox(height: 5,),
+                  // show my posts
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    separatorBuilder: (context, index) => const SizedBox(
+                      height: 8.0,
+                    ),
+                    itemBuilder: (context, index) =>
+                        buildPostItem(context, SocialCubit.get(context).loggedInUserpostsData[index],SocialCubit.get(context).loggedInUserpostId, index , ScreenType.SETTINGS),
+                    itemCount: SocialCubit.get(context).loggedInUserpostsData.length,
+                  ),
+                  const SizedBox(
+                    height: 10.0,
+                  ),
+                  // show more posts
+                  ConditionalBuilder(
+                    condition: state is! SocialGetLoggedInUserPostLoadingState,
+                    builder: (context) => defaultTextButton(
+                        fun: () {
+                          SocialCubit.get(context).getLoggedInUserPostsData(loadMore: true);
+                        },
+                        text: "show more"),
+                    fallback: (context) =>
+                        const Center(child: CircularProgressIndicator()),
+                  ),
+                  const SizedBox(
+                    height: 8.0,
+                  ),
                 ],
               ),
             ),

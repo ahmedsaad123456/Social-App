@@ -19,6 +19,7 @@ import 'package:social_app/modules/feeds/feeds_screen.dart';
 import 'package:social_app/modules/new_post/new_post_screen.dart';
 import 'package:social_app/modules/settings/settings_screen.dart';
 import 'package:social_app/modules/users/users_screen.dart';
+import 'package:social_app/shared/components/components.dart';
 import 'package:social_app/shared/components/constants.dart';
 
 class SocialCubit extends Cubit<SocialStates> {
@@ -97,23 +98,28 @@ class SocialCubit extends Cubit<SocialStates> {
   // list that contains data of logged in posts
   List<PostDataModel> loggedInUserpostsData = [];
 
+  // DocumentSnapshot to keep track of the last document
+  DocumentSnapshot? lastDocument;
+
   // get all the posts data
   void getLoggedInUserPostsData({bool loadMore = false}) async {
-    emit(SocialGetPostLoadingState());
+    emit(SocialGetLoggedInUserPostLoadingState());
 
     try {
-      Query postQuery = FirebaseFirestore.instance.collection('posts');
+      Query postQuery = FirebaseFirestore.instance
+          .collection('posts')
+          .where("uId", isEqualTo: uId)
+          .orderBy('dateTime', descending: true)
+          .limit(3);
 
       // if the user need to show more
       // If loading more and we have existing posts, fetch next batch after the last post
-      if (loadMore && postId.isNotEmpty) {
-        postQuery =
-            postQuery.orderBy(FieldPath.documentId).startAfter([postId.last]);
+      if (loadMore && lastDocument != null) {
+        postQuery = postQuery.startAfterDocument(lastDocument!);
       }
 
-      // get 3 posts only every time
-      QuerySnapshot postQuerySnapshot =
-          await postQuery.where("uId", isEqualTo: uId).limit(3).get();
+      // Execute the query
+      QuerySnapshot postQuerySnapshot = await postQuery.get();
 
       if (postQuerySnapshot.docs.isNotEmpty) {
         for (QueryDocumentSnapshot postSnapshot in postQuerySnapshot.docs) {
@@ -137,9 +143,7 @@ class SocialCubit extends Cubit<SocialStates> {
                 userSnapshot.data() as Map<String, dynamic>));
           }
 
-          // store all data in the lists
-          bool isLiked =
-              likesUsers.any((like) => like.uId == userDataModel!.user.uId);
+          bool isLiked = likesUsers.any((like) => like.uId == uId);
 
           // Create PostData instance
           PostDataModel postData = PostDataModel(
@@ -153,6 +157,9 @@ class SocialCubit extends Cubit<SocialStates> {
           // Store post data in the map
           loggedInUserpostId.add(postSnapshot.id);
           loggedInUserpostsData.add(postData);
+
+          // Update the last document
+          lastDocument = postQuerySnapshot.docs.last;
         }
         emit(SocialGetLoggedInUserPostSuccessState());
       } else {
@@ -444,8 +451,7 @@ class SocialCubit extends Cubit<SocialStates> {
                 userSnapshot.data() as Map<String, dynamic>));
           }
 
-          bool isLiked =
-              likesUsers.any((like) => like.uId == userDataModel!.user.uId);
+          bool isLiked = likesUsers.any((like) => like.uId == uId);
 
           // Create PostData instance
           PostDataModel postData = PostDataModel(
@@ -472,7 +478,10 @@ class SocialCubit extends Cubit<SocialStates> {
 //================================================================================================================================
 
   // do like on the post
-  Future<bool> likePost({required String postId, required int index}) async {
+  Future<bool> likePost(
+      {required String postID,
+      required int index,
+      required ScreenType screen}) async {
     try {
       emit(SocialLikePostLoadingState());
 
@@ -483,12 +492,37 @@ class SocialCubit extends Cubit<SocialStates> {
       );
       await FirebaseFirestore.instance
           .collection('posts')
-          .doc(postId)
+          .doc(postID)
           .collection('likes')
           .add(model.toMap());
 
-      allpostsData[index].likes.add(model);
-      allpostsData[index].isLiked = true;
+      if (screen == ScreenType.HOME) {
+        // If screen is HOME, update the likes list in allpostsData
+        allpostsData[index].likes.add(model);
+        allpostsData[index].isLiked = true;
+
+        
+        // Check if the post is in the posts of the logged in user
+        int userPostIndex = loggedInUserpostId.indexOf(postID);
+        if (userPostIndex != -1) {
+          
+          // If the postId is found in the list, update the likes list in loggedInUserpostsData
+          loggedInUserpostsData[userPostIndex].likes.add(model);
+          loggedInUserpostsData[userPostIndex].isLiked = true;
+        }
+      } else if (screen == ScreenType.SETTINGS) {
+        // If screen is SETTINGS, update the likes list in loggedInUserpostsData
+        loggedInUserpostsData[index].likes.add(model);
+        loggedInUserpostsData[index].isLiked = true;
+
+        // Check if the post is in the posts of the home
+        int userPostIndex = postId.indexOf(postID);
+        if (userPostIndex != -1) {
+          // If the postId is found in the list, update the likes list in the home
+          allpostsData[userPostIndex].likes.add(model);
+          allpostsData[userPostIndex].isLiked = true;
+        }
+      }
 
       emit(SocialLikePostSuccessState());
       return true; // Return true to indicate success
@@ -501,14 +535,17 @@ class SocialCubit extends Cubit<SocialStates> {
 //================================================================================================================================
 
   // do unlike on the post
-  Future<bool> unlikePost({required String postId, required int index}) async {
+  Future<bool> unlikePost(
+      {required String postID,
+      required int index,
+      required ScreenType screen}) async {
     try {
       emit(SocialUnlikePostLoadingState());
 
       // Perform the unlike operation
       await FirebaseFirestore.instance
           .collection('posts')
-          .doc(postId)
+          .doc(postID)
           .collection('likes')
           .where('uId', isEqualTo: userDataModel!.user.uId)
           .get()
@@ -517,10 +554,39 @@ class SocialCubit extends Cubit<SocialStates> {
             .delete(); // Delete the first document directly (unique)
       });
 
-      allpostsData[index]
-          .likes
-          .removeWhere((like) => like.uId == userDataModel!.user.uId);
-      allpostsData[index].isLiked = false;
+      if (screen == ScreenType.HOME) {
+        // If screen is HOME, update the likes list in allpostsData
+        allpostsData[index]
+            .likes
+            .removeWhere((like) => like.uId == userDataModel!.user.uId);
+        allpostsData[index].isLiked = false;
+
+        // Check if the post is in the posts of the logged in user
+        int userPostIndex = loggedInUserpostId.indexOf(postID);
+        if (userPostIndex != -1) {
+          // If the postId is found in the list, update the likes list in loggedInUserpostsData
+          loggedInUserpostsData[userPostIndex]
+              .likes
+              .removeWhere((like) => like.uId == userDataModel!.user.uId);
+          loggedInUserpostsData[userPostIndex].isLiked = false;
+        }
+      } else if (screen == ScreenType.SETTINGS) {
+        // If screen is SETTINGS, update the likes list in loggedInUserpostsData
+        loggedInUserpostsData[index]
+            .likes
+            .removeWhere((like) => like.uId == userDataModel!.user.uId);
+        loggedInUserpostsData[index].isLiked = false;
+
+        // Check if the post is in the posts of the home
+        int userPostIndex = postId.indexOf(postID);
+        if (userPostIndex != -1) {
+          // If the postId is found in the list, update the likes list in the home
+          allpostsData[userPostIndex]
+              .likes
+              .removeWhere((like) => like.uId == userDataModel!.user.uId);
+          allpostsData[userPostIndex].isLiked = false;
+        }
+      }
 
       emit(SocialUnlikePostSuccessState());
       return true; // Return true to indicate success
@@ -660,8 +726,10 @@ class SocialCubit extends Cubit<SocialStates> {
   // add comment to the post collection
   void sendComment({
     required String text,
-    required String postId,
+    required String postID,
     required int index,
+    // to trage the position of the post (home or settings)
+    required ScreenType screen,
   }) {
     emit(SocialCommentPostLoadingState());
 
@@ -675,11 +743,32 @@ class SocialCubit extends Cubit<SocialStates> {
 
     FirebaseFirestore.instance
         .collection('posts')
-        .doc(postId)
+        .doc(postID)
         .collection('comments')
         .add(model.toMap())
         .then((value) {
-      allpostsData[index].comments.add(model);
+      // Check the value of the screen parameter
+      if (screen == ScreenType.HOME) {
+        // If screen is HOME, update the comments list in allpostsData
+        allpostsData[index].comments.add(model);
+        // check if the post is in the posts of the logged in user
+        int userPostIndex = loggedInUserpostId.indexOf(postID);
+
+        if (userPostIndex != -1) {
+          // If the postId is found in the list, update the comments list in loggedInUserpostsData
+          loggedInUserpostsData[userPostIndex].comments.add(model);
+        }
+      } else if (screen == ScreenType.SETTINGS) {
+        // If screen is Settings, update the comments list in loggedInUserpostsData
+        loggedInUserpostsData[index].comments.add(model);
+        // check if the post is in the posts of the home
+        int userPostIndex = postId.indexOf(postID);
+
+        if (userPostIndex != -1) {
+          // If the postId is found in the list, update the comments list in the home
+          allpostsData[userPostIndex].comments.add(model);
+        }
+      }
 
       emit(SocialCommentPostSuccessState());
     }).catchError((error) {
@@ -761,7 +850,6 @@ class SocialCubit extends Cubit<SocialStates> {
       userDataModel!.followings
           .removeWhere((following) => following.uId == followingUserId);
 
-      
       // Perform the unfollow operation and remove follower user from following user collection
       await FirebaseFirestore.instance
           .collection('users')
@@ -773,7 +861,6 @@ class SocialCubit extends Cubit<SocialStates> {
         querySnapshot.docs.first.reference
             .delete(); // Delete the first document directly (unique)
       });
-
 
       emit(SocialUnFollowUserSuccessState());
       return true; // Return true to indicate success
