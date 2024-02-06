@@ -356,7 +356,7 @@ Widget buildPostItem(
             onTap: () {
               if (screen != ScreenType.POST) {
                 
-                navigateTo(context, PostScreen(model , postId, index, ScreenType.POST));
+                navigateTo(context, PostScreen(model , postId, index, ScreenType.POST, screen));
               }
             },
             child: Text(

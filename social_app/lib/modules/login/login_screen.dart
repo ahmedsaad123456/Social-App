@@ -28,7 +28,7 @@ class LoginScreen extends StatelessWidget {
         // Listen to state changes in LoginCubit
         if (state is LoginErrorState) {
           // Show error message if user login fails
-          messageScreen(message: "Login failed", state: ToastStates.ERROR);
+          messageScreen(message: state.error, state: ToastStates.ERROR);
         } else if (state is LoginSuccessState) {
           // Show success message if user login succeeds
           messageScreen(message: 'Login success', state: ToastStates.SUCCESS);

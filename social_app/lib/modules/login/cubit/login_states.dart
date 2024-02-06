@@ -1,30 +1,32 @@
 //================================================================================================================================
 
 // Abstract class representing various states for login
-abstract class LoginStates {} 
+import 'package:social_app/shared/components/constants.dart';
+
+abstract class LoginStates {}
 
 // Initial state for login
-class LoginInitialState extends LoginStates {} 
+class LoginInitialState extends LoginStates {}
 //================================================================================================================================
 
-
 // State representing loading during login process
-class LoginLoadingState extends LoginStates {} 
+class LoginLoadingState extends LoginStates {}
 
 // State representing successful login
-class LoginSuccessState extends LoginStates { 
-  
+class LoginSuccessState extends LoginStates {
   // User ID of the logged-in user
-  final String uId; 
+  final String uId;
 
   LoginSuccessState(this.uId);
 }
 
 // State representing login error
-class LoginErrorState extends LoginStates { 
-  final String error; 
+class LoginErrorState extends LoginStates {
+  String error;
 
-  LoginErrorState(this.error);
+  LoginErrorState(this.error) {
+    error = error.replaceAll(regex, "").trim();
+  }
 }
 
 //================================================================================================================================

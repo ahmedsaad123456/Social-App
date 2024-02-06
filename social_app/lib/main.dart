@@ -85,10 +85,14 @@ class MyApp extends StatelessWidget {
           create: (buildcontext) =>
               DarkCubit()..changeAppMode(isShared: isDark),
         ),
-        BlocProvider(
-            create: (buildContext) => SocialCubit()
+        BlocProvider(create: (buildContext) {
+          if (startWidget is! LoginScreen) {
+            return SocialCubit()
               ..getUserData()
-              ..getLoggedInUserPostsData()),
+              ..getLoggedInUserPostsData();
+          }
+          return SocialCubit();
+        }),
       ],
       child: BlocConsumer<DarkCubit, DarkStates>(
           listener: (context, state) {},

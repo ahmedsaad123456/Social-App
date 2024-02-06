@@ -147,7 +147,8 @@ class SettingsScreen extends StatelessWidget {
                                       SocialCubit.get(context)
                                           .userDataModel!
                                           .followers,
-                                      'Followers' , ScreenType.SETTINGS));
+                                      'Followers',
+                                      ScreenType.SETTINGS));
                             },
                             child: Column(
                               children: [
@@ -172,7 +173,8 @@ class SettingsScreen extends StatelessWidget {
                                       SocialCubit.get(context)
                                           .userDataModel!
                                           .followings,
-                                      'Followings' , ScreenType.SETTINGS));
+                                      'Followings',
+                                      ScreenType.SETTINGS));
                             },
                             child: Column(
                               children: [
@@ -320,6 +322,7 @@ void signOut(context) {
       SocialCubit.get(context).users = [];
       SocialCubit.get(context).usersSearch = [];
       SocialCubit.get(context).changeBottomNavBar(0);
+      SocialCubit.get(context).isLoggedInPosts = null;
 
       // Navigate to the LoginScreen after signing out.
       navigateAndFinish(

@@ -42,7 +42,7 @@ class RegisterScreen extends StatelessWidget {
             navigateAndFinish(
                 context, const SocialLayout()); // Navigate to main app layout
           });
-        } else if (state is CreateUserErrorState) {
+        } else if (state is RegisterErrorState) {
           // Show error message on registration error
           messageScreen(message: state.error, state: ToastStates.ERROR);
         }

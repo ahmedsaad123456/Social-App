@@ -16,7 +16,11 @@ class PostScreen extends StatelessWidget {
   final int index;
 
   final ScreenType screen;
-  const PostScreen(this.postDataModel, this.postId, this.index, this.screen,
+
+  final ScreenType fromScreen;
+
+  const PostScreen(
+      this.postDataModel, this.postId, this.index, this.screen, this.fromScreen,
       {super.key});
 
   @override
@@ -34,7 +38,7 @@ class PostScreen extends StatelessWidget {
           body: SingleChildScrollView(
             child: Column(
               children: [
-                buildPostItem(context, postDataModel, postId, index, screen),
+                buildPostItem(context, postDataModel, postId, index, fromScreen),
                 const SizedBox(
                   height: 10,
                 ),
@@ -59,7 +63,7 @@ class PostScreen extends StatelessWidget {
                     physics: const NeverScrollableScrollPhysics(),
                     itemBuilder: (context, index) {
                       return buildCommentItem(
-                          postDataModel.comments[index], context, screen);
+                          postDataModel.comments[index], context, fromScreen);
                     },
                     itemCount: postDataModel.comments.length),
               ],

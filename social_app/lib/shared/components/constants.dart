@@ -3,6 +3,10 @@
 // user id of the loggedIn user
 String? uId;
 
+
+// to remove the unnecessary words in error created by firebase 
+RegExp regex = RegExp(r"\[.*?\]");
+
 //================================================================================================================================
 
 // postman api messaging 

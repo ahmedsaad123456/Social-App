@@ -90,6 +90,9 @@ class SocialCubit extends Cubit<SocialStates> {
   // DocumentSnapshot to keep track of the last document
   DocumentSnapshot? lastDocument;
 
+  // String to indicate that is no posts of specific user
+  String? isLoggedInPosts;
+
   // get all the posts data
   void getLoggedInUserPostsData({bool loadMore = false}) async {
     emit(SocialGetLoggedInUserPostLoadingState());
@@ -152,6 +155,7 @@ class SocialCubit extends Cubit<SocialStates> {
         }
         emit(SocialGetLoggedInUserPostSuccessState());
       } else {
+        isLoggedInPosts = "no";
         emit(SocialGetLoggedInUserPostEmptyState());
       }
     } catch (error) {
@@ -379,6 +383,20 @@ class SocialCubit extends Cubit<SocialStates> {
         .collection('posts')
         .add(model.toMap())
         .then((value) {
+      // Store the post ID in loggedInUserpostId list
+      loggedInUserpostId.insert(0, value.id);
+
+      // Add the created post model to loggedInUserpostsData list
+      
+      PostDataModel postData = PostDataModel(
+        post: model,
+        likes: [],
+        comments: [],
+        isLiked: false,
+      );
+
+      loggedInUserpostsData.insert(0, postData);
+
       emit(SocialCreatePostSuccessState());
     }).catchError((error) {
       emit(SocialCreatePostErrorState());
@@ -529,24 +547,6 @@ class SocialCubit extends Cubit<SocialStates> {
           allpostsData[userPostIndex].likes.add(model);
           allpostsData[userPostIndex].isLiked = true;
         }
-      } else if (screen == ScreenType.POST) {
-        // If screen is POST
-
-        // Check if the post is in the posts of the home
-        int userPostIndex = postId.indexOf(postID);
-        if (userPostIndex != -1) {
-          // If the postId is found in the list, update the likes list in the home
-          allpostsData[userPostIndex].likes.add(model);
-          allpostsData[userPostIndex].isLiked = true;
-        }
-
-        // Check if the post is in the posts of the logged in user
-        userPostIndex = loggedInUserpostId.indexOf(postID);
-        if (userPostIndex != -1) {
-          // If the postId is found in the list, update the likes list in loggedInUserpostsData
-          loggedInUserpostsData[userPostIndex].likes.add(model);
-          loggedInUserpostsData[userPostIndex].isLiked = true;
-        }
       }
 
       emit(SocialLikePostSuccessState());
@@ -627,27 +627,6 @@ class SocialCubit extends Cubit<SocialStates> {
               .likes
               .removeWhere((like) => like.uId == userDataModel!.user.uId);
           allpostsData[userPostIndex].isLiked = false;
-        }
-      } else if (screen == ScreenType.POST) {
-        // If screen is POST
-
-        // Check if the post is in the posts of the home
-        int userPostIndex = postId.indexOf(postID);
-        if (userPostIndex != -1) {
-          // If the postId is found in the list, update the likes list in the home
-          allpostsData[userPostIndex]
-              .likes
-              .removeWhere((like) => like.uId == userDataModel!.user.uId);
-          allpostsData[userPostIndex].isLiked = false;
-        }
-
-        userPostIndex = loggedInUserpostId.indexOf(postID);
-        if (userPostIndex != -1) {
-          // If the postId is found in the list, update the likes list in loggedInUserpostsData
-          loggedInUserpostsData[userPostIndex]
-              .likes
-              .removeWhere((like) => like.uId == userDataModel!.user.uId);
-          loggedInUserpostsData[userPostIndex].isLiked = false;
         }
       }
 
@@ -840,20 +819,6 @@ class SocialCubit extends Cubit<SocialStates> {
         if (userPostIndex != -1) {
           // If the postId is found in the list, update the comments list in the home
           allpostsData[userPostIndex].comments.add(model);
-        }
-      } else if (screen == ScreenType.POST) {
-        // check if the post is in the posts of the home
-        int userPostIndex = postId.indexOf(postID);
-
-        if (userPostIndex != -1) {
-          // If the postId is found in the list, update the comments list in the home
-          allpostsData[userPostIndex].comments.add(model);
-        }
-        userPostIndex = loggedInUserpostId.indexOf(postID);
-
-        if (userPostIndex != -1) {
-          // If the postId is found in the list, update the comments list in loggedInUserpostsData
-          loggedInUserpostsData[userPostIndex].comments.add(model);
         }
       }
 
@@ -1114,6 +1079,4 @@ class SocialCubit extends Cubit<SocialStates> {
   }
 
 //================================================================================================================================
-
-  
 }
