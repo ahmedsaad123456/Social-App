@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:like_button/like_button.dart';
 import 'package:social_app/layouts/cubit/social_cubit.dart';
+import 'package:social_app/models/comment_model.dart';
 import 'package:social_app/models/follow_model.dart';
 import 'package:social_app/models/post_data_model.dart';
 import 'package:social_app/models/user_model.dart';
 import 'package:social_app/modules/chat_details/chat_details_screen.dart';
 import 'package:social_app/modules/comments/comments_screen.dart';
 import 'package:social_app/modules/likes/likes_screen.dart';
+import 'package:social_app/modules/post_screen/post_screen.dart';
 import 'package:social_app/modules/user_profile/user_profile_screen.dart';
 import 'package:social_app/shared/styles/colors.dart';
 import 'package:social_app/shared/styles/icon_broken.dart';
@@ -143,7 +145,7 @@ Future<bool?> messageScreen({
 enum ToastStates { SUCCESS, ERROR, WARNING }
 
 // enum to indicate the position of the post
-enum ScreenType { HOME, SETTINGS, PROFILE }
+enum ScreenType { HOME, SETTINGS, PROFILE, POST }
 //================================================================================================================================
 
 // return the color of the toast screen according to the state
@@ -350,10 +352,18 @@ Widget buildPostItem(
               color: Colors.grey[300],
             ),
           ),
-          Text(
-            // text of the post
-            '${model.post.text}',
-            style: Theme.of(context).textTheme.titleMedium,
+          InkWell(
+            onTap: () {
+              if (screen != ScreenType.POST) {
+                
+                navigateTo(context, PostScreen(model , postId, index, ScreenType.POST));
+              }
+            },
+            child: Text(
+              // text of the post
+              '${model.post.text}',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
           ),
           // if the post has image
           if (model.post.postImage != '')
@@ -383,8 +393,9 @@ Widget buildPostItem(
                   // number of likes on the post
                   child: InkWell(
                     onTap: () {
-                      navigateTo(
-                          context, LikesScreen(model.likes, index, screen));
+                        navigateTo(context,
+                            LikesScreen(model.likes, index, screen));
+                      
                     },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
@@ -766,6 +777,117 @@ Widget buildFollowUserItem(FollowModel model, context, ScreenType? screen) {
             ),
         ],
       ),
+    ),
+  );
+}
+
+// =============================================================================================================================
+
+// build comment item
+Widget buildCommentItem(CommentModel comment, context, ScreenType? screen) {
+  return Padding(
+    padding: const EdgeInsets.only(
+      top: 20.0,
+      left: 20.0,
+      right: 20.0,
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            InkWell(
+              onTap: () {
+                if (screen != ScreenType.PROFILE) {
+                  if (comment.uId !=
+                      SocialCubit.get(context).userDataModel!.user.uId) {
+                    SocialCubit.get(context).clearSpecificUserData();
+
+                    SocialCubit.get(context)
+                        .getSpecificUserData(specificUserId: comment.uId!);
+
+                    navigateTo(context, const UserProfileScreen());
+                  } else {
+                    messageScreen(
+                        message: "go to settings to show your profile",
+                        state: ToastStates.WARNING);
+                  }
+                }
+              },
+              child: CircleAvatar(
+                radius: 18.0,
+                backgroundColor: Colors.white, // Set background color to white
+                child: ClipOval(
+                  child: Image.network(
+                    comment.image!,
+                    width: 50,
+                    height: 50,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (BuildContext context, Widget child,
+                        ImageChunkEvent? loadingProgress) {
+                      if (loadingProgress == null) {
+                        return child; // Return the main image when it's loaded
+                      } else {
+                        // Return a placeholder while the image is loading
+                        return const Center(
+                          child: Image(
+                              image: AssetImage('assets/images/white.jpeg')),
+                        );
+                      }
+                    },
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Image(
+                          image: AssetImage('assets/images/white.jpeg'));
+                    },
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(
+              width: 15.0,
+            ),
+            Expanded(
+              child: IntrinsicHeight(
+                child: Container(
+                  decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(20.0)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          comment.name ?? "",
+                          style: const TextStyle(
+                              color: Colors.black,
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.w800),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Expanded(
+                            child: Text(
+                          comment.text ?? "Loading!!",
+                          style: TextStyle(
+                              color: Colors.grey[700], fontSize: 15.0),
+                        ))
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        Padding(
+          padding: const EdgeInsets.only(
+            left: 65.0,
+          ),
+          child: Text(comment.dateTime!.substring(0, 16)),
+        )
+      ],
     ),
   );
 }

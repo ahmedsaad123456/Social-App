@@ -39,6 +39,8 @@ class LikesScreen extends StatelessWidget {
       onTap: () {
         if (screen != ScreenType.PROFILE) {
           if (model.uId != SocialCubit.get(context).userDataModel!.user.uId) {
+            SocialCubit.get(context).clearSpecificUserData();
+
             SocialCubit.get(context)
                 .getSpecificUserData(specificUserId: model.uId!);
 

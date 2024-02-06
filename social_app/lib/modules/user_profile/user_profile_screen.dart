@@ -32,11 +32,12 @@ class UserProfileScreen extends StatelessWidget {
       builder: (context, state) {
         var loggedInUser = SocialCubit.get(context).userDataModel!.user;
         return Scaffold(
-          appBar: AppBar(
-            title: 
-            
-            Text(
-                SocialCubit.get(context).specificUserDataModel?.user.name != null ? '${SocialCubit.get(context).specificUserDataModel?.user.name ?? ''}\'s profile  ' : '') ,
+          appBar: defaultAppBar(
+            title: SocialCubit.get(context).specificUserDataModel?.user.name !=
+                    null
+                ? '${SocialCubit.get(context).specificUserDataModel?.user.name ?? ''}\'s profile  '
+                : '',
+            context: context,
           ),
           body: ConditionalBuilder(
             condition:
