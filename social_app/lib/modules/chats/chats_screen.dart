@@ -17,6 +17,7 @@ class ChatsScreen extends StatelessWidget {
     return BlocConsumer<SocialCubit, SocialStates>(
       listener: (context, state) {},
       builder: (context, state) {
+        SocialCubit.get(context).filterUsersForChats();
         var chatUsers = SocialCubit.get(context).userChatsModel;
         return ConditionalBuilder(
           condition: SocialCubit.get(context).users.isNotEmpty,

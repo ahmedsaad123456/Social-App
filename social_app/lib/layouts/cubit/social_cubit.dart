@@ -191,7 +191,9 @@ class SocialCubit extends Cubit<SocialStates> {
   // change the bottom nav bar index
   void changeBottomNavBar(index) {
     if (index == 1) {
-      filterUsersForChats();
+      if(users.isNotEmpty) {
+        filterUsersForChats();
+      }
     }
     if (index == 2) {
       // emit state to navigate to create post screen
@@ -754,6 +756,7 @@ class SocialCubit extends Cubit<SocialStates> {
           .collection('messages')
           .add(model.toMap())
           .then((value) {
+        previousDate = null;
         emit(SocialSendMessageSuccessState());
       }).catchError((error) {
         emit(SocialSendMessageErrorState());
@@ -779,6 +782,8 @@ class SocialCubit extends Cubit<SocialStates> {
           .collection('messages')
           .add(model.toMap())
           .then((value) {
+        previousDate = null;
+
         emit(SocialSendMessageSuccessState());
       }).catchError((error) {
         emit(SocialSendMessageErrorState());
@@ -787,10 +792,58 @@ class SocialCubit extends Cubit<SocialStates> {
       emit(SocialSendMessageErrorState());
     });
   }
+//================================================================================================================================
+
+  // Method to delete a message from Firestore collection based on its dateTime (unique format)
+  void deleteMessage(String dateTime, String receiverId, bool isMyMessage) {
+    // delete the message from the sender collection
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(userDataModel!.user.uId)
+        .collection('chats')
+        .doc(receiverId)
+        .collection('messages')
+        .where('dateTime', isEqualTo: dateTime)
+        .get()
+        .then((querySnapshot) {
+      if (querySnapshot.docs.isNotEmpty) {
+        querySnapshot.docs.first.reference.delete();
+      }
+      previousDate = null;
+
+      emit(SocialDeleteMessageSuccessState());
+    }).catchError((error) {
+      emit(SocialDeleteMessageErrorState());
+    });
+
+    // delete the message from the receiver collection if the message is sent by the sender
+    if (isMyMessage) {
+      FirebaseFirestore.instance
+          .collection('users')
+          .doc(receiverId)
+          .collection('chats')
+          .doc(userDataModel!.user.uId)
+          .collection('messages')
+          .where('dateTime', isEqualTo: dateTime)
+          .get()
+          .then((querySnapshot) {
+        if (querySnapshot.docs.isNotEmpty) {
+          querySnapshot.docs.first.reference.delete();
+        }
+        previousDate = null;
+
+        emit(SocialDeleteMessageSuccessState());
+      }).catchError((error) {
+        emit(SocialDeleteMessageErrorState());
+      });
+    }
+  }
 
 //================================================================================================================================
 
   List<MessageModel> messages = [];
+
+  String? previousDate; // Track previous date
 
   // get messages
   void getMessages({
@@ -805,12 +858,25 @@ class SocialCubit extends Cubit<SocialStates> {
         .orderBy('dateTime')
         .snapshots()
         .listen((event) {
+      previousDate = null;
       messages = [];
       for (var element in event.docs) {
         messages.add(MessageModel.fromJson(element.data()));
       }
       emit(SocialGetMessagesSuccessState());
     });
+  }
+
+//================================================================================================================================
+
+  // Function to check if the date is different from the previous message
+  bool showDate(String dateTime) {
+    bool show = false;
+    if (previousDate == null || previousDate != dateTime.substring(0, 11)) {
+      show = true;
+      previousDate = dateTime.substring(0, 11);
+    }
+    return show;
   }
 
 //================================================================================================================================
@@ -985,6 +1051,7 @@ class SocialCubit extends Cubit<SocialStates> {
     emit(SocialGetSpecificUserLoadingState());
 
     try {
+      previousDate = null;
       Query userQuery = FirebaseFirestore.instance
           .collection('users')
           .where('uId', isEqualTo: specificUserId);
@@ -1020,6 +1087,7 @@ class SocialCubit extends Cubit<SocialStates> {
       );
 
       specificUserDataModel = userData;
+      previousDate = null;
 
       getSpecificUserPostsData(specificUserId: specificUserId);
 
@@ -1106,9 +1174,11 @@ class SocialCubit extends Cubit<SocialStates> {
           // Update the last document
           specificlastDocument = postQuerySnapshot.docs.last;
         }
+        previousDate = null;
         emit(SocialGetSpecificUserPostSuccessState());
       } else {
         isPosts = "no";
+        previousDate = null;
         emit(SocialGetSpecificUserPostEmptyState());
       }
     } catch (error) {
@@ -1126,6 +1196,7 @@ class SocialCubit extends Cubit<SocialStates> {
     specificlastDocument = null;
     specificUserpostsData = [];
     isPosts = null;
+    previousDate = null;
   }
 
 //================================================================================================================================

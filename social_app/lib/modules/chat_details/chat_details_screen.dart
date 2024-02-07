@@ -18,8 +18,6 @@ class ChatDetailsScreen extends StatelessWidget {
 
   final messageController = TextEditingController();
 
-  String? previousDate; // Track previous date
-
 //================================================================================================================================
 
   @override
@@ -35,6 +33,7 @@ class ChatDetailsScreen extends StatelessWidget {
               appBar: AppBar(
                 leading: BackButton(
                   onPressed: () {
+                    SocialCubit.get(context).previousDate = null;
                     SocialCubit.get(context).messages = [];
                     Navigator.pop(context);
                   },
@@ -42,6 +41,7 @@ class ChatDetailsScreen extends StatelessWidget {
                 titleSpacing: 0.0,
                 title: InkWell(
                   onTap: () {
+                    SocialCubit.get(context).previousDate = null;
                     SocialCubit.get(context).clearSpecificUserData();
 
                     SocialCubit.get(context)
@@ -91,42 +91,56 @@ class ChatDetailsScreen extends StatelessWidget {
               ),
               body: ConditionalBuilder(
                 condition: true,
-                builder: (context) => Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    children: [
-                      Expanded(
-                        child: ListView.separated(
-                            physics: const BouncingScrollPhysics(),
-                            itemBuilder: (context, index) {
-                              // if the message was sent by the loggedIn user
-                              if (SocialCubit.get(context)
-                                      .userDataModel!
-                                      .user
-                                      .uId ==
-                                  SocialCubit.get(context)
-                                      .messages[index]
-                                      .senderId) {
-                                return buildMyMessage(
-                                    SocialCubit.get(context).messages[index],
-                                    context);
-                              }
+                builder: (context) => Column(
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        reverse: true,
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Column(
+                            children: [
+                              ListView.separated(
+                                  physics:
+                                      const NeverScrollableScrollPhysics(), // Disable scrolling of this ListView
+                                  shrinkWrap: true, // Wrap content
+                                  itemBuilder: (context, index) {
+                                    // if the message was sent by the loggedIn user
+                                    if (SocialCubit.get(context)
+                                            .userDataModel!
+                                            .user
+                                            .uId ==
+                                        SocialCubit.get(context)
+                                            .messages[index]
+                                            .senderId) {
+                                      return buildMyMessage(
+                                          SocialCubit.get(context)
+                                              .messages[index],
+                                          context);
+                                    }
 
-                              // if the message wasn't sent by the loggedIn user
-                              else {
-                                return buildOtherMessage(
-                                    SocialCubit.get(context).messages[index],
-                                    context);
-                              }
-                            },
-                            separatorBuilder: (context, index) =>
-                                const SizedBox(
-                                  height: 15.0,
-                                ),
-                            itemCount:
-                                SocialCubit.get(context).messages.length),
+                                    // if the message wasn't sent by the loggedIn user
+                                    else {
+                                      return buildOtherMessage(
+                                          SocialCubit.get(context)
+                                              .messages[index],
+                                          context);
+                                    }
+                                  },
+                                  separatorBuilder: (context, index) =>
+                                      const SizedBox(
+                                        height: 15.0,
+                                      ),
+                                  itemCount:
+                                      SocialCubit.get(context).messages.length),
+                            ],
+                          ),
+                        ),
                       ),
-                      Container(
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: Container(
                         decoration: BoxDecoration(
                           border: Border.all(
                             width: 1.0,
@@ -162,6 +176,7 @@ class ChatDetailsScreen extends StatelessWidget {
                                         message: "can't send empty message",
                                         state: ToastStates.ERROR);
                                   } else {
+                                    SocialCubit.get(context).previousDate = null;
                                     SocialCubit.get(context).sendMessage(
                                         receiverId: userModel.uId!,
                                         text: messageController.text,
@@ -180,8 +195,8 @@ class ChatDetailsScreen extends StatelessWidget {
                           ],
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
                 fallback: (context) =>
                     const Center(child: CircularProgressIndicator()),
@@ -194,32 +209,60 @@ class ChatDetailsScreen extends StatelessWidget {
   }
 
 //================================================================================================================================
-// Function to check if the date is different from the previous message
-  bool showDate(String dateTime) {
-    
-    final String currentDate = dateTime.substring(0, 11);
-    final bool show = previousDate != currentDate;
-    previousDate = currentDate;
-    return show;
-  }
-
-//================================================================================================================================
   // build the message of the other user
-  Widget buildOtherMessage(MessageModel model, context) => Column(
-        children: [
-          if (showDate(model.dateTime!))
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 5.0),
-              child: Text(
-                model.dateTime!
-                    .substring(0, 11), // Display the date above the message
-                style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                      color: Colors.grey[500],
-                    ),
-              ),
+  Widget buildOtherMessage(MessageModel model, context) {
+    GlobalKey key = GlobalKey();
+
+    return Column(
+      children: [
+        if (SocialCubit.get(context).showDate(model.dateTime!) ||
+            SocialCubit.get(context).previousDate == null)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 5.0),
+            child: Text(
+              model.dateTime!
+                  .substring(0, 11), // Display the date above the message
+              style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                    color: Colors.grey[500],
+                  ),
             ),
-          Align(
-            alignment: AlignmentDirectional.centerStart,
+          ),
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: InkWell(
+            key: key,
+            onLongPress: () {
+              final RenderBox overlay =
+                  key.currentContext!.findRenderObject() as RenderBox;
+              final tapPosition = overlay.localToGlobal(Offset.zero);
+              showMenu(
+                  context: context,
+                  position: RelativeRect.fromLTRB(
+                    tapPosition.dx,
+                    tapPosition.dy,
+                    MediaQuery.of(context).size.width - tapPosition.dx,
+                    MediaQuery.of(context).size.height - tapPosition.dy,
+                  ),
+                  items: [
+                    const PopupMenuItem(
+                      value: 1,
+                      child: Row(
+                        children: [
+                          Icon(IconBroken.Delete),
+                          SizedBox(
+                            width: 10,
+                          ),
+                          Text("Delete")
+                        ],
+                      ),
+                    ),
+                  ]).then((value) {
+                if (value == 1) {
+                  SocialCubit.get(context)
+                      .deleteMessage(model.dateTime!, model.senderId!, false);
+                }
+              });
+            },
             child: Container(
               decoration: BoxDecoration(
                 color: Colors.grey[300],
@@ -250,27 +293,81 @@ class ChatDetailsScreen extends StatelessWidget {
               ),
             ),
           ),
-        ],
-      );
+        ),
+      ],
+    );
+  }
 
 //================================================================================================================================
 
   // build the message of the loggedIn user
-  Widget buildMyMessage(MessageModel model, context) => Column(
-        children: [
-          if (showDate(model.dateTime!) )
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 5.0),
-              child: Text(
-                model.dateTime!
-                    .substring(0, 11), // Display the date above the message
-                style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                      color: Colors.grey[500],
-                    ),
-              ),
+  Widget buildMyMessage(MessageModel model, context) {
+    GlobalKey key = GlobalKey();
+
+    return Column(
+      children: [
+        if (SocialCubit.get(context).showDate(model.dateTime!) ||
+            SocialCubit.get(context).previousDate == null)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 5.0),
+            child: Text(
+              model.dateTime!
+                  .substring(0, 11), // Display the date above the message
+              style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                    color: Colors.grey[500],
+                  ),
             ),
-          Align(
-            alignment: AlignmentDirectional.centerEnd,
+          ),
+        Align(
+          alignment: AlignmentDirectional.centerEnd,
+          child: InkWell(
+            key: key,
+            onLongPress: () {
+              final RenderBox overlay =
+                  key.currentContext!.findRenderObject() as RenderBox;
+              final tapPosition = overlay.localToGlobal(Offset.zero);
+              showMenu(
+                  context: context,
+                  position: RelativeRect.fromLTRB(
+                    tapPosition.dx,
+                    tapPosition.dy,
+                    MediaQuery.of(context).size.width - tapPosition.dx,
+                    MediaQuery.of(context).size.height - tapPosition.dy,
+                  ),
+                  items: [
+                    const PopupMenuItem(
+                      value: 1,
+                      child: Row(
+                        children: [
+                          Icon(IconBroken.Delete),
+                          SizedBox(
+                            width: 10,
+                          ),
+                          Text("Delete")
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: 2,
+                      child: Row(
+                        children: [
+                          Icon(IconBroken.Edit),
+                          SizedBox(
+                            width: 10,
+                          ),
+                          Text("Edit")
+                        ],
+                      ),
+                    ),
+                  ]).then((value) {
+                if (value == 1) {
+                  SocialCubit.get(context)
+                      .deleteMessage(model.dateTime!, model.receiverId!, true);
+                } else if (value == 2) {
+                  print("22222222222");
+                }
+              });
+            },
             child: Container(
               decoration: BoxDecoration(
                 color: defaultColor.withOpacity(0.2),
@@ -301,12 +398,12 @@ class ChatDetailsScreen extends StatelessWidget {
               ),
             ),
           ),
-        ],
-      );
+        ),
+      ],
+    );
+  }
 
 //================================================================================================================================
 }
-              // Text(model.dateTime!.substring(0, 16)),
 
 //================================================================================================================================
-
