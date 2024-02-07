@@ -1,3 +1,4 @@
+import 'package:conditional_builder_null_safety/conditional_builder_null_safety.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:social_app/layouts/cubit/social_cubit.dart';
@@ -50,158 +51,169 @@ class NewPostScreen extends StatelessWidget {
                   text: 'POST'),
             ],
           ),
-          body: SingleChildScrollView(
-            physics: const NeverScrollableScrollPhysics(),
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                children: [
-                  if (state is SocialCreatePostLoadingState)
-                    const LinearProgressIndicator(),
-                  if (state is SocialCreatePostLoadingState)
-                    const SizedBox(
-                      height: 10.0,
-                    ),
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 25.0,
-                        backgroundColor:
-                            Colors.white, // Set background color to white
-                        child: ClipOval(
-                          child: Image.network(
-                            SocialCubit.get(context).userDataModel!.user.image!,
-                            width: 50,
-                            height: 50,
-                            fit: BoxFit.cover,
-                            loadingBuilder: (BuildContext context, Widget child,
-                                ImageChunkEvent? loadingProgress) {
-                              if (loadingProgress == null) {
-                                return child; // Return the main image when it's loaded
-                              } else {
-                                // Return a placeholder while the image is loading
-                                return const Center(
-                                  child: Image(
-                                      image: AssetImage(
-                                          'assets/images/white.jpeg')),
-                                );
-                              }
-                            },
-                            errorBuilder: (context, error, stackTrace) {
-                              return const Image(
-                                  image:
-                                      AssetImage('assets/images/white.jpeg'));
-                            },
-                          ),
-                        ),
-                      ),
+          body: ConditionalBuilder(
+            condition: SocialCubit.get(context).userDataModel != null,
+            builder: (context) => SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  children: [
+                    if (state is SocialCreatePostLoadingState)
+                      const LinearProgressIndicator(),
+                    if (state is SocialCreatePostLoadingState)
                       const SizedBox(
-                        width: 15.0,
+                        height: 10.0,
                       ),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  SocialCubit.get(context)
-                                          .userDataModel!
-                                          .user
-                                          .name ??
-                                      '',
-                                  style: const TextStyle(height: 1.4),
-                                ),
-                              ],
-                            ),
-                            Text(
-                              'public',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall!
-                                  .copyWith(height: 1.4),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  TextFormField(
-                    maxLines: 10,
-                    controller: textController,
-                    decoration: const InputDecoration(
-                      hintText: 'what is on your mind',
-                      border: InputBorder.none,
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                  if (SocialCubit.get(context).postImage != null)
-                    Stack(
-                      alignment: AlignmentDirectional.topEnd,
+                    Row(
                       children: [
-                        Card(
-                          clipBehavior: Clip.antiAliasWithSaveLayer,
-                          elevation: 5.0,
-                          margin: const EdgeInsets.all(0.0),
-                          child: Image(
-                            image:
-                                FileImage(SocialCubit.get(context).postImage!),
-                            fit: BoxFit.cover,
-                            height: 265.0,
-                            width: double.infinity,
-                            errorBuilder: (context, error, stackTrace) =>
-                                const Image(
-                                    image: AssetImage(
-                                        'assets/images/image_error.jpeg')),
+                        CircleAvatar(
+                          radius: 25.0,
+                          backgroundColor:
+                              Colors.white, // Set background color to white
+                          child: ClipOval(
+                            child: Image.network(
+                              SocialCubit.get(context)
+                                  .userDataModel!
+                                  .user
+                                  .image!,
+                              width: 50,
+                              height: 50,
+                              fit: BoxFit.cover,
+                              loadingBuilder: (BuildContext context,
+                                  Widget child,
+                                  ImageChunkEvent? loadingProgress) {
+                                if (loadingProgress == null) {
+                                  return child; // Return the main image when it's loaded
+                                } else {
+                                  // Return a placeholder while the image is loading
+                                  return const Center(
+                                    child: Image(
+                                        image: AssetImage(
+                                            'assets/images/white.jpeg')),
+                                  );
+                                }
+                              },
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Image(
+                                    image:
+                                        AssetImage('assets/images/white.jpeg'));
+                              },
+                            ),
                           ),
                         ),
-                        IconButton(
-                          onPressed: () {
-                            SocialCubit.get(context).removePostImage();
-                          },
-                          icon: const CircleAvatar(
-                            radius: 20.0,
-                            child: Icon(
-                              Icons.close,
-                              size: 16.0,
+                        const SizedBox(
+                          width: 15.0,
+                        ),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    SocialCubit.get(context)
+                                            .userDataModel!
+                                            .user
+                                            .name ??
+                                        '',
+                                    style: const TextStyle(height: 1.4),
+                                  ),
+                                ],
+                              ),
+                              Text(
+                                'public',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall!
+                                    .copyWith(height: 1.4),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    TextFormField(
+                      maxLines: 10,
+                      controller: textController,
+                      decoration: const InputDecoration(
+                        hintText: 'what is on your mind',
+                        border: InputBorder.none,
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 20,
+                    ),
+                    if (SocialCubit.get(context).postImage != null)
+                      Stack(
+                        alignment: AlignmentDirectional.topEnd,
+                        children: [
+                          Card(
+                            clipBehavior: Clip.antiAliasWithSaveLayer,
+                            elevation: 5.0,
+                            margin: const EdgeInsets.all(0.0),
+                            child: LimitedBox(
+                              maxHeight: 500.0,
+                              child: Image(
+                                image: FileImage(
+                                    SocialCubit.get(context).postImage!),
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    const Image(
+                                        image: AssetImage(
+                                            'assets/images/image_error.jpeg')),
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () {
+                              SocialCubit.get(context).removePostImage();
+                            },
+                            icon: const CircleAvatar(
+                              radius: 20.0,
+                              child: Icon(
+                                Icons.close,
+                                size: 16.0,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    const SizedBox(
+                      height: 20,
+                    ),
+                    if (SocialCubit.get(context).postImage == null)
+                      const SizedBox(
+                        height: 250,
+                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextButton(
+                            onPressed: () {
+                              SocialCubit.get(context).getPostImage();
+                            },
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(IconBroken.Image),
+                                SizedBox(
+                                  width: 5.0,
+                                ),
+                                Text('add photo'),
+                              ],
                             ),
                           ),
                         ),
                       ],
                     ),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                  if (SocialCubit.get(context).postImage == null)
-                    const SizedBox(
-                      height: 250,
-                    ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextButton(
-                          onPressed: () {
-                            SocialCubit.get(context).getPostImage();
-                          },
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(IconBroken.Image),
-                              SizedBox(
-                                width: 5.0,
-                              ),
-                              Text('add photo'),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
+            fallback: (context) =>
+                const Center(child: CircularProgressIndicator()),
           ),
         );
       },

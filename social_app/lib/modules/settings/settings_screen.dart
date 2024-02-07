@@ -323,6 +323,8 @@ void signOut(context) {
       SocialCubit.get(context).usersSearch = [];
       SocialCubit.get(context).changeBottomNavBar(0);
       SocialCubit.get(context).isLoggedInPosts = null;
+      SocialCubit.get(context).userChatIds = {};
+      SocialCubit.get(context).userChatsModel = [];
 
       // Navigate to the LoginScreen after signing out.
       navigateAndFinish(

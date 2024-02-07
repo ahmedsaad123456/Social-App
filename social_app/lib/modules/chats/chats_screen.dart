@@ -17,15 +17,15 @@ class ChatsScreen extends StatelessWidget {
     return BlocConsumer<SocialCubit, SocialStates>(
       listener: (context, state) {},
       builder: (context, state) {
-        var users = SocialCubit.get(context).users;
+        var chatUsers = SocialCubit.get(context).userChatsModel;
         return ConditionalBuilder(
-          condition: users.isNotEmpty,
+          condition: SocialCubit.get(context).users.isNotEmpty,
           builder: (context) => ListView.separated(
               physics: const BouncingScrollPhysics(),
               itemBuilder: (context, index) =>
-                  buildChatItem(users[index], context),
+                  buildChatItem(chatUsers[index], context),
               separatorBuilder: (context, index) => myDivider(),
-              itemCount: users.length),
+              itemCount: chatUsers.length),
           fallback: (context) => const Center(
             child: CircularProgressIndicator(),
           ),

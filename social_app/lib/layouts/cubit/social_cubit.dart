@@ -29,6 +29,10 @@ class SocialCubit extends Cubit<SocialStates> {
   // Data of logged in user
   UserDataModel? userDataModel;
 
+  Set<String> userChatIds = {};
+
+  List<UserModel> userChatsModel = [];
+
   void getUserData() async {
     emit(SocialGetUserLoadingState());
 
@@ -42,6 +46,13 @@ class SocialCubit extends Cubit<SocialStates> {
 
       List<FollowModel> followers = [];
       List<FollowModel> followings = [];
+
+      // Iterate over the chats collection and add document IDs to the set
+      QuerySnapshot chatsQuerySnapshot =
+          await userSnapshot.reference.collection('chats').get();
+      for (var chatSnapshot in chatsQuerySnapshot.docs) {
+        userChatIds.add(chatSnapshot.id);
+      }
 
       // get followers of the user
       QuerySnapshot followersQuerySnapshot =
@@ -70,6 +81,7 @@ class SocialCubit extends Cubit<SocialStates> {
       userDataModel = userData;
 
       getPostsData();
+      getAllUsersData();
 
       emit(SocialGetUserSuccessState());
     } catch (error) {
@@ -178,9 +190,8 @@ class SocialCubit extends Cubit<SocialStates> {
 
   // change the bottom nav bar index
   void changeBottomNavBar(index) {
-    if (index == 1 || index == 3) {
-      // get all user to chat
-      getAllUsersData();
+    if (index == 1) {
+      filterUsersForChats();
     }
     if (index == 2) {
       // emit state to navigate to create post screen
@@ -201,6 +212,21 @@ class SocialCubit extends Cubit<SocialStates> {
     'Users',
     'Settings',
   ];
+
+  //================================================================================================================================
+
+  void filterUsersForChats() {
+    userChatsModel.clear(); // Clear the existing list
+
+    // Iterate over the users list
+    for (UserModel user in users) {
+      // Check if the user's ID is in the userChatIds set
+      if (userChatIds.contains(user.uId)) {
+        // If yes, add the user to the userChatsModel list
+        userChatsModel.add(user);
+      }
+    }
+  }
 
 //================================================================================================================================
 
@@ -387,7 +413,7 @@ class SocialCubit extends Cubit<SocialStates> {
       loggedInUserpostId.insert(0, value.id);
 
       // Add the created post model to loggedInUserpostsData list
-      
+
       PostDataModel postData = PostDataModel(
         post: model,
         likes: [],
@@ -696,7 +722,6 @@ class SocialCubit extends Cubit<SocialStates> {
   }
 
 //================================================================================================================================
-  // send message to specific user
   void sendMessage({
     required String receiverId,
     required String text,
@@ -709,30 +734,55 @@ class SocialCubit extends Cubit<SocialStates> {
       senderId: userDataModel!.user.uId,
     );
 
-    // add message to the reciever
+    // add receiver id to the list to appear in the chats
+    userChatIds.add(receiverId);
+
+    // Add message to the receiver's chat collection
     FirebaseFirestore.instance
         .collection('users')
-        .doc(userDataModel!.user.uId)
-        .collection('chats')
         .doc(receiverId)
-        .collection('messages')
-        .add(model.toMap())
-        .then((value) {
-      emit(SocialSendMessageSuccessState());
+        .collection('chats')
+        .doc(userDataModel!.user.uId)
+        .set({
+      'uId': userDataModel!.user.uId, // Add sender's uId to receiver's chat
+    }).then((value) {
+      FirebaseFirestore.instance
+          .collection('users')
+          .doc(receiverId)
+          .collection('chats')
+          .doc(userDataModel!.user.uId)
+          .collection('messages')
+          .add(model.toMap())
+          .then((value) {
+        emit(SocialSendMessageSuccessState());
+      }).catchError((error) {
+        emit(SocialSendMessageErrorState());
+      });
     }).catchError((error) {
       emit(SocialSendMessageErrorState());
     });
 
-    // add message to the sender
+    // Add message to the sender's chat collection
     FirebaseFirestore.instance
         .collection('users')
-        .doc(receiverId)
-        .collection('chats')
         .doc(userDataModel!.user.uId)
-        .collection('messages')
-        .add(model.toMap())
-        .then((value) {
-      emit(SocialSendMessageSuccessState());
+        .collection('chats')
+        .doc(receiverId)
+        .set({
+      'uId': receiverId, // Add receiver's uId to sender's chat
+    }).then((value) {
+      FirebaseFirestore.instance
+          .collection('users')
+          .doc(userDataModel!.user.uId)
+          .collection('chats')
+          .doc(receiverId)
+          .collection('messages')
+          .add(model.toMap())
+          .then((value) {
+        emit(SocialSendMessageSuccessState());
+      }).catchError((error) {
+        emit(SocialSendMessageErrorState());
+      });
     }).catchError((error) {
       emit(SocialSendMessageErrorState());
     });
@@ -746,6 +796,7 @@ class SocialCubit extends Cubit<SocialStates> {
   void getMessages({
     required String receiverId,
   }) {
+    messages = [];
     FirebaseFirestore.instance
         .collection('users')
         .doc(userDataModel!.user.uId)
@@ -755,7 +806,6 @@ class SocialCubit extends Cubit<SocialStates> {
         .orderBy('dateTime')
         .snapshots()
         .listen((event) {
-      messages = [];
       for (var element in event.docs) {
         messages.add(MessageModel.fromJson(element.data()));
       }

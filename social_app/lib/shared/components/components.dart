@@ -8,6 +8,7 @@ import 'package:social_app/models/post_data_model.dart';
 import 'package:social_app/models/user_model.dart';
 import 'package:social_app/modules/chat_details/chat_details_screen.dart';
 import 'package:social_app/modules/comments/comments_screen.dart';
+import 'package:social_app/modules/image_screen/image_screen.dart';
 import 'package:social_app/modules/likes/likes_screen.dart';
 import 'package:social_app/modules/post_screen/post_screen.dart';
 import 'package:social_app/modules/user_profile/user_profile_screen.dart';
@@ -355,8 +356,8 @@ Widget buildPostItem(
           InkWell(
             onTap: () {
               if (screen != ScreenType.POST) {
-                
-                navigateTo(context, PostScreen(model , postId, index, ScreenType.POST, screen));
+                navigateTo(context,
+                    PostScreen(model, postId, index, ScreenType.POST, screen));
               }
             },
             child: Text(
@@ -375,13 +376,21 @@ Widget buildPostItem(
                 clipBehavior: Clip.antiAliasWithSaveLayer,
                 elevation: 5.0,
                 margin: const EdgeInsets.all(0.0),
-                child: Image(
-                  image: NetworkImage(model.post.postImage!),
-                  fit: BoxFit.cover,
-                  height: 140.0,
-                  width: double.infinity,
-                  errorBuilder: (context, error, stackTrace) => const Image(
-                      image: AssetImage('assets/images/image_error.jpeg')),
+                child: GestureDetector(
+                  onTap: () {
+                    navigateTo(
+                        context, ImageScreen(imageFile: model.post.postImage!));
+                  },
+                  child: LimitedBox(
+                    maxHeight: 500.0,
+                    child: Image(
+                      image: NetworkImage(model.post.postImage!),
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      errorBuilder: (context, error, stackTrace) => const Image(
+                          image: AssetImage('assets/images/image_error.jpeg')),
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -393,9 +402,8 @@ Widget buildPostItem(
                   // number of likes on the post
                   child: InkWell(
                     onTap: () {
-                        navigateTo(context,
-                            LikesScreen(model.likes, index, screen));
-                      
+                      navigateTo(
+                          context, LikesScreen(model.likes, index, screen));
                     },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
