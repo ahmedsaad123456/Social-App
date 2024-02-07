@@ -796,7 +796,6 @@ class SocialCubit extends Cubit<SocialStates> {
   void getMessages({
     required String receiverId,
   }) {
-    messages = [];
     FirebaseFirestore.instance
         .collection('users')
         .doc(userDataModel!.user.uId)
@@ -806,6 +805,7 @@ class SocialCubit extends Cubit<SocialStates> {
         .orderBy('dateTime')
         .snapshots()
         .listen((event) {
+      messages = [];
       for (var element in event.docs) {
         messages.add(MessageModel.fromJson(element.data()));
       }

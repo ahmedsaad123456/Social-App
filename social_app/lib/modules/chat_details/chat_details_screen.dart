@@ -10,12 +10,15 @@ import 'package:social_app/shared/components/components.dart';
 import 'package:social_app/shared/styles/colors.dart';
 import 'package:social_app/shared/styles/icon_broken.dart';
 
+// ignore: must_be_immutable
 class ChatDetailsScreen extends StatelessWidget {
   // user in chat
   final UserModel userModel;
   ChatDetailsScreen(this.userModel, {super.key});
 
   final messageController = TextEditingController();
+
+  String? previousDate; // Track previous date
 
 //================================================================================================================================
 
@@ -30,6 +33,12 @@ class ChatDetailsScreen extends StatelessWidget {
           builder: (context, state) {
             return Scaffold(
               appBar: AppBar(
+                leading: BackButton(
+                  onPressed: () {
+                    SocialCubit.get(context).messages = [];
+                    Navigator.pop(context);
+                  },
+                ),
                 titleSpacing: 0.0,
                 title: InkWell(
                   onTap: () {
@@ -99,13 +108,15 @@ class ChatDetailsScreen extends StatelessWidget {
                                       .messages[index]
                                       .senderId) {
                                 return buildMyMessage(
-                                    SocialCubit.get(context).messages[index]);
+                                    SocialCubit.get(context).messages[index],
+                                    context);
                               }
 
                               // if the message wasn't sent by the loggedIn user
                               else {
                                 return buildOtherMessage(
-                                    SocialCubit.get(context).messages[index]);
+                                    SocialCubit.get(context).messages[index],
+                                    context);
                               }
                             },
                             separatorBuilder: (context, index) =>
@@ -183,51 +194,119 @@ class ChatDetailsScreen extends StatelessWidget {
   }
 
 //================================================================================================================================
+// Function to check if the date is different from the previous message
+  bool showDate(String dateTime) {
+    
+    final String currentDate = dateTime.substring(0, 11);
+    final bool show = previousDate != currentDate;
+    previousDate = currentDate;
+    return show;
+  }
 
+//================================================================================================================================
   // build the message of the other user
-  Widget buildOtherMessage(MessageModel model) => Align(
-        alignment: AlignmentDirectional.centerStart,
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.grey[300],
-            borderRadius: const BorderRadiusDirectional.only(
-              bottomEnd: Radius.circular(10.0),
-              topStart: Radius.circular(10.0),
-              topEnd: Radius.circular(10.0),
+  Widget buildOtherMessage(MessageModel model, context) => Column(
+        children: [
+          if (showDate(model.dateTime!))
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 5.0),
+              child: Text(
+                model.dateTime!
+                    .substring(0, 11), // Display the date above the message
+                style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                      color: Colors.grey[500],
+                    ),
+              ),
+            ),
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: const BorderRadiusDirectional.only(
+                  bottomEnd: Radius.circular(10.0),
+                  topStart: Radius.circular(10.0),
+                  topEnd: Radius.circular(10.0),
+                ),
+              ),
+              padding: const EdgeInsets.symmetric(
+                vertical: 5.0,
+                horizontal: 10.0,
+              ),
+              child: RichText(
+                text: TextSpan(
+                  text: "${model.text!} \n", // original tex
+                  style: Theme.of(context).textTheme.titleMedium,
+                  children: [
+                    TextSpan(
+                      text: model.dateTime!.substring(11, 16), // dateTime text
+                      style: Theme.of(context)
+                          .textTheme
+                          .labelSmall!
+                          .copyWith(color: Colors.grey[500]),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
-          padding: const EdgeInsets.symmetric(
-            vertical: 5.0,
-            horizontal: 10.0,
-          ),
-          child: Text(model.text!),
-        ),
+        ],
       );
 
 //================================================================================================================================
 
   // build the message of the loggedIn user
-  Widget buildMyMessage(MessageModel model) => Align(
-        alignment: AlignmentDirectional.centerEnd,
-        child: Container(
-          decoration: BoxDecoration(
-            color: defaultColor.withOpacity(0.2),
-            borderRadius: const BorderRadiusDirectional.only(
-              bottomStart: Radius.circular(10.0),
-              topStart: Radius.circular(10.0),
-              topEnd: Radius.circular(10.0),
+  Widget buildMyMessage(MessageModel model, context) => Column(
+        children: [
+          if (showDate(model.dateTime!) )
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 5.0),
+              child: Text(
+                model.dateTime!
+                    .substring(0, 11), // Display the date above the message
+                style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                      color: Colors.grey[500],
+                    ),
+              ),
+            ),
+          Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: Container(
+              decoration: BoxDecoration(
+                color: defaultColor.withOpacity(0.2),
+                borderRadius: const BorderRadiusDirectional.only(
+                  bottomStart: Radius.circular(10.0),
+                  topStart: Radius.circular(10.0),
+                  topEnd: Radius.circular(10.0),
+                ),
+              ),
+              padding: const EdgeInsets.symmetric(
+                vertical: 5.0,
+                horizontal: 10.0,
+              ),
+              child: RichText(
+                text: TextSpan(
+                  text: "${model.text!} \n", // original tex
+                  style: Theme.of(context).textTheme.titleMedium,
+                  children: [
+                    TextSpan(
+                      text: model.dateTime!.substring(11, 16), // dateTime text
+                      style: Theme.of(context)
+                          .textTheme
+                          .labelSmall!
+                          .copyWith(color: Colors.grey[500]),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
-          padding: const EdgeInsets.symmetric(
-            vertical: 5.0,
-            horizontal: 10.0,
-          ),
-          child: Text(model.text!),
-        ),
+        ],
       );
 
 //================================================================================================================================
 }
+              // Text(model.dateTime!.substring(0, 16)),
 
 //================================================================================================================================
 
