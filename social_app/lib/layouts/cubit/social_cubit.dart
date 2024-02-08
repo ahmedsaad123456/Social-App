@@ -480,6 +480,45 @@ class SocialCubit extends Cubit<SocialStates> {
 
 //================================================================================================================================
 
+// edit post
+  void editPost(PostDataModel model, String postID, int index,
+      ScreenType screen, String text) {
+    model.post.text = text;
+    emit(SocialEditPostLoadingState());
+    FirebaseFirestore.instance
+        .collection('posts')
+        .doc(postID)
+        .update(model.post.toMap())
+        .then((value) {
+      if (screen == ScreenType.HOME) {
+        // If screen is HOME, update the post in the home
+        allpostsData[index] = model;
+        // Check if the post is in the posts of the logged in user
+        int userPostIndex = loggedInUserpostId.indexOf(postID);
+        if (userPostIndex != -1) {
+          // If the postId is found in the list, update the post in loggedInUserpostsData
+          loggedInUserpostsData[userPostIndex] = model;
+        }
+      } else if (screen == ScreenType.SETTINGS) {
+        // If screen is SETTINGS, update the post in loggedInUserpostsData
+        loggedInUserpostsData[index] = model;
+
+        // Check if the post is in the posts of the home
+        int userPostIndex = postId.indexOf(postID);
+        if (userPostIndex != -1) {
+          // If the postId is found in the list, update the post in the home
+          allpostsData[userPostIndex] = model;
+        }
+      }
+
+      emit(SocialEditPostSuccessState());
+    }).catchError((error) {
+      emit(SocialEditPostErrorState());
+    });
+  }
+
+//================================================================================================================================
+
   // remove post image when creating new post
   void removePostImage() {
     postImage = null;

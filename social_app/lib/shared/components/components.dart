@@ -8,6 +8,7 @@ import 'package:social_app/models/post_data_model.dart';
 import 'package:social_app/models/user_model.dart';
 import 'package:social_app/modules/chat_details/chat_details_screen.dart';
 import 'package:social_app/modules/comments/comments_screen.dart';
+import 'package:social_app/modules/edit_post/edit_post_screen.dart';
 import 'package:social_app/modules/image_screen/image_screen.dart';
 import 'package:social_app/modules/likes/likes_screen.dart';
 import 'package:social_app/modules/post_screen/post_screen.dart';
@@ -369,7 +370,10 @@ Widget buildPostItem(
                         if (isPostScreen) {
                           Navigator.pop(context);
                         }
-                      } else if (value == 2) {}
+                      } else if (value == 2) {
+                        navigateTo(context,
+                            EditPostScreen(model, postId, index, screen));
+                      }
                     },
                   ),
               ],

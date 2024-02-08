@@ -3,58 +3,48 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:social_app/layouts/cubit/social_cubit.dart';
 import 'package:social_app/layouts/cubit/social_states.dart';
+import 'package:social_app/models/post_data_model.dart';
 import 'package:social_app/shared/components/components.dart';
-import 'package:social_app/shared/styles/icon_broken.dart';
 
-class NewPostScreen extends StatelessWidget {
+class EditPostScreen extends StatelessWidget {
   final textController = TextEditingController();
-  NewPostScreen({super.key});
+  final PostDataModel postDataModel;
+
+  final List<String> postId;
+
+  final int index;
+
+  final ScreenType screen;
+
+  EditPostScreen(this.postDataModel, this.postId, this.index, this.screen,
+      {super.key}) {
+    textController.text = postDataModel.post.text!;
+  }
 
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<SocialCubit, SocialStates>(
       listener: (context, state) {
-        // to check if the post created successfully or not
-        if (state is SocialCreatePostSuccessState) {
-          messageScreen(
-              message: 'Created Successfully', state: ToastStates.SUCCESS);
-        }
-
-        if (state is SocialCreatePostErrorState) {
-          messageScreen(message: "Failed", state: ToastStates.ERROR);
-        }
       },
       builder: (context, state) {
         return Scaffold(
           appBar: defaultAppBar(
             context: context,
-            title: 'Create Post',
+            title: 'Edit Post',
             actions: [
               defaultTextButton(
                   fun: () {
                     if (textController.text.isEmpty) {
                       messageScreen(
-                          message: "can't create empty post",
+                          message: "can't update to empty post",
                           state: ToastStates.ERROR);
                     } else {
-                      // if the post has image
-                      if (SocialCubit.get(context).postImage != null) {
-                        SocialCubit.get(context).uplaodPostImage(
-                            dateTime: DateTime.now().toIso8601String(),
-                            text: textController.text);
-                        textController.text = "";
-                      }
-
-                      // if the post hasn't image
-                      else {
-                        SocialCubit.get(context).createPost(
-                            dateTime: DateTime.now().toIso8601String(),
-                            text: textController.text);
-                        textController.text = "";
-                      }
+                      SocialCubit.get(context).editPost(postDataModel,
+                          postId[index], index, screen, textController.text);
+                      Navigator.pop(context);
                     }
                   },
-                  text: 'POST'),
+                  text: 'Edit'),
             ],
           ),
           body: ConditionalBuilder(
@@ -65,7 +55,7 @@ class NewPostScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(20.0),
                 child: Column(
                   children: [
-                    if (state is SocialCreatePostLoadingState)
+                    if (state is SocialEditPostLoadingState)
                       const LinearProgressIndicator(),
                     if (state is SocialCreatePostLoadingState)
                       const SizedBox(
@@ -143,14 +133,13 @@ class NewPostScreen extends StatelessWidget {
                       maxLines: 10,
                       controller: textController,
                       decoration: const InputDecoration(
-                        hintText: 'what is on your mind',
                         border: InputBorder.none,
                       ),
                     ),
                     const SizedBox(
                       height: 20,
                     ),
-                    if (SocialCubit.get(context).postImage != null)
+                    if (postDataModel.post.postImage != '')
                       Stack(
                         alignment: AlignmentDirectional.topEnd,
                         children: [
@@ -161,8 +150,8 @@ class NewPostScreen extends StatelessWidget {
                             child: LimitedBox(
                               maxHeight: 500.0,
                               child: Image(
-                                image: FileImage(
-                                    SocialCubit.get(context).postImage!),
+                                image:
+                                    NetworkImage(postDataModel.post.postImage!),
                                 fit: BoxFit.cover,
                                 width: double.infinity,
                                 errorBuilder: (context, error, stackTrace) =>
@@ -172,48 +161,15 @@ class NewPostScreen extends StatelessWidget {
                               ),
                             ),
                           ),
-                          IconButton(
-                            onPressed: () {
-                              SocialCubit.get(context).removePostImage();
-                            },
-                            icon: const CircleAvatar(
-                              radius: 20.0,
-                              child: Icon(
-                                Icons.close,
-                                size: 16.0,
-                              ),
-                            ),
-                          ),
                         ],
                       ),
                     const SizedBox(
                       height: 20,
                     ),
-                    if (SocialCubit.get(context).postImage == null)
+                    if (postDataModel.post.postImage == null)
                       const SizedBox(
                         height: 250,
                       ),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextButton(
-                            onPressed: () {
-                              SocialCubit.get(context).getPostImage();
-                            },
-                            child: const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(IconBroken.Image),
-                                SizedBox(
-                                  width: 5.0,
-                                ),
-                                Text('add photo'),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
                   ],
                 ),
               ),

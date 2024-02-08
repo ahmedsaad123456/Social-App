@@ -28,6 +28,15 @@ class SettingsScreen extends StatelessWidget {
               message: "Check your internet connection",
               state: ToastStates.ERROR);
         }
+        // to check if the post updated successfully or not
+        if (state is SocialEditPostSuccessState) {
+          messageScreen(
+              message: 'Updated Successfully', state: ToastStates.SUCCESS);
+        }
+
+        if (state is SocialEditPostErrorState) {
+          messageScreen(message: "Failed", state: ToastStates.ERROR);
+        }
       },
       builder: (context, state) {
         var userModel = SocialCubit.get(context).userDataModel!.user;
