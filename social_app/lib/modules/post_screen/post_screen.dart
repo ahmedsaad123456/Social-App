@@ -38,7 +38,7 @@ class PostScreen extends StatelessWidget {
           body: SingleChildScrollView(
             child: Column(
               children: [
-                buildPostItem(context, postDataModel, postId, index, fromScreen),
+                buildPostItem(context, postDataModel, postId, index, fromScreen , isPostScreen: true),
                 const SizedBox(
                   height: 10,
                 ),

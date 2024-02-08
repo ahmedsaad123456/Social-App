@@ -87,6 +87,15 @@ class SocialCreatePostErrorState extends SocialStates {}
 class SocialCreatePostSuccessState extends SocialStates {}
 
 
+
+// delete post 
+class SocialDeletePostLoadingState extends SocialStates {}
+
+class SocialDeletePostSuccessState extends SocialStates {}
+
+class SocialDeletePostErrorState extends SocialStates {}
+
+
 // picked post image
 class SocialPostImagePickedSuccessState extends SocialStates {}
 

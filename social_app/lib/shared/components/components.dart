@@ -228,12 +228,8 @@ PreferredSizeWidget defaultAppBar({
 //================================================================================================================================
 
 Widget buildPostItem(
-  context,
-  PostDataModel model,
-  List<String> postId,
-  index,
-  ScreenType screen,
-) {
+    context, PostDataModel model, List<String> postId, index, ScreenType screen,
+    {bool isPostScreen = false}) {
   var textController = TextEditingController();
 
   return Card(
@@ -334,12 +330,48 @@ Widget buildPostItem(
                     ],
                   ),
                 ),
-                IconButton(
-                    icon: const Icon(
-                      Icons.more_horiz,
-                      size: 16.0,
-                    ),
-                    onPressed: () {}),
+                if (model.post.uId ==
+                    SocialCubit.get(context).userDataModel!.user.uId)
+                  PopupMenuButton(
+                    color: Colors.grey[300],
+                    itemBuilder: (context) {
+                      return [
+                        const PopupMenuItem(
+                          value: 1,
+                          child: Row(
+                            children: [
+                              Icon(IconBroken.Delete),
+                              SizedBox(
+                                width: 10,
+                              ),
+                              Text("Delete")
+                            ],
+                          ),
+                        ),
+                        const PopupMenuItem(
+                          value: 2,
+                          child: Row(
+                            children: [
+                              Icon(IconBroken.Edit),
+                              SizedBox(
+                                width: 10,
+                              ),
+                              Text("Edit")
+                            ],
+                          ),
+                        ),
+                      ];
+                    },
+                    onSelected: (value) {
+                      if (value == 1) {
+                        SocialCubit.get(context)
+                            .deletePost(postId[index], index, screen);
+                        if (isPostScreen) {
+                          Navigator.pop(context);
+                        }
+                      } else if (value == 2) {}
+                    },
+                  ),
               ],
             ),
           ),
@@ -355,7 +387,7 @@ Widget buildPostItem(
           ),
           InkWell(
             onTap: () {
-              if (screen != ScreenType.POST) {
+              if (!isPostScreen) {
                 navigateTo(context,
                     PostScreen(model, postId, index, ScreenType.POST, screen));
               }

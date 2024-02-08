@@ -27,10 +27,10 @@ void main() async {
       // options: DefaultFirebaseOptions.currentPlatform,
       );
 
-  // var token = await FirebaseMessaging.instance.getToken();
+  var token = await FirebaseMessaging.instance.getToken();
 
-  // print('The Token: ');
-  // print(token);
+  print('The Token: ');
+  print(token);
   // opened and in it
   // forground fcm
   FirebaseMessaging.onMessage.listen((event) {

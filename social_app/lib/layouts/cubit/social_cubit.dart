@@ -438,6 +438,48 @@ class SocialCubit extends Cubit<SocialStates> {
 
 //================================================================================================================================
 
+// delete post
+  void deletePost(String postID, int index, ScreenType screen) {
+    emit(SocialDeletePostLoadingState());
+    FirebaseFirestore.instance
+        .collection('posts')
+        .doc(postID)
+        .delete()
+        .then((value) {
+      if (screen == ScreenType.HOME) {
+        // If screen is HOME, delete the post from the home
+        allpostsData.removeAt(index);
+        postId.remove(postID);
+
+        // Check if the post is in the posts of the logged in user
+        int userPostIndex = loggedInUserpostId.indexOf(postID);
+        if (userPostIndex != -1) {
+          // If the postId is found in the list, delete the post from loggedInUserpostsData
+          loggedInUserpostsData.removeAt(userPostIndex);
+          loggedInUserpostId.remove(postID);
+        }
+      } else if (screen == ScreenType.SETTINGS) {
+        // If screen is SETTINGS, delete the post from loggedInUserpostsData
+        loggedInUserpostsData.removeAt(index);
+        loggedInUserpostId.remove(postID);
+
+        // Check if the post is in the posts of the home
+        int userPostIndex = postId.indexOf(postID);
+        if (userPostIndex != -1) {
+          // If the postId is found in the list, delete the post from the home
+          allpostsData.removeAt(userPostIndex);
+          postId.remove(postID);
+        }
+      }
+
+      emit(SocialDeletePostSuccessState());
+    }).catchError((error) {
+      emit(SocialDeletePostErrorState());
+    });
+  }
+
+//================================================================================================================================
+
   // remove post image when creating new post
   void removePostImage() {
     postImage = null;
