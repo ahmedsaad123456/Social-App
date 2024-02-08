@@ -6,6 +6,7 @@ import 'package:social_app/layouts/cubit/social_states.dart';
 import 'package:social_app/models/user_model.dart';
 import 'package:social_app/modules/chat_details/chat_details_screen.dart';
 import 'package:social_app/shared/components/components.dart';
+import 'package:social_app/shared/styles/icon_broken.dart';
 
 class ChatsScreen extends StatelessWidget {
   const ChatsScreen({super.key});
@@ -39,9 +40,80 @@ class ChatsScreen extends StatelessWidget {
 
   // build chat item
   Widget buildChatItem(UserModel model, context) {
+    GlobalKey key = GlobalKey();
+
     return InkWell(
+      key: key,
       onTap: () {
         navigateTo(context, ChatDetailsScreen(model));
+      },
+      onLongPress: () {
+        final RenderBox overlay =
+            key.currentContext!.findRenderObject() as RenderBox;
+        final tapPosition = overlay.localToGlobal(Offset.zero);
+        showMenu(
+            context: context,
+            position: RelativeRect.fromLTRB(
+              tapPosition.dx,
+              tapPosition.dy,
+              MediaQuery.of(context).size.width - tapPosition.dx,
+              MediaQuery.of(context).size.height - tapPosition.dy,
+            ),
+            items: [
+              const PopupMenuItem(
+                value: 1,
+                child: Row(
+                  children: [
+                    Icon(IconBroken.Delete),
+                    SizedBox(
+                      width: 10,
+                    ),
+                    Text("Delete")
+                  ],
+                ),
+              ),
+            ]).then((value) {
+          if (value == 1) {
+            showDialog(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                title: const Text("Delete chat"),
+                content: const Text(
+                    "This will lead to delete all messages in this chat"),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(ctx).pop();
+                    },
+                    child: Container(
+                      color: Colors.red,
+                      padding: const EdgeInsets.all(14),
+                      child: const Text(
+                        "cancel",
+                        style: TextStyle(color: Colors.black),
+                      ),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      SocialCubit.get(context).deleteChat(model.uId!);
+                      Navigator.of(ctx).pop();
+
+                    },
+                    child: Container(
+                      color: Colors.green,
+                      padding: const EdgeInsets.all(14),
+                      child: const Text(
+                        "confirm",
+                        style: TextStyle(color: Colors.black),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+        });
       },
       child: Padding(
         padding: const EdgeInsets.all(20.0),

@@ -110,6 +110,10 @@ class SocialGetPostErrorState extends SocialStates {
 
 class SocialGetPostEmptyState extends SocialStates{}
 
+// clear post data
+
+class SocialClearPostSuccessState extends SocialStates {}
+
 
 // like post
 class SocialLikePostLoadingState extends SocialStates {}
@@ -155,6 +159,12 @@ class SocialEditMessageSuccessState extends SocialStates {}
 class SocialEditMessageErrorState extends SocialStates {}
 
 class SocialSetMessageModelState extends SocialStates {}
+
+// delete chat
+
+class SocialDeleteChatSuccessState extends SocialStates {}
+
+class SocialDeleteChatErrorState extends SocialStates {}
 
 
 // send comments

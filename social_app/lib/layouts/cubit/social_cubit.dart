@@ -521,6 +521,13 @@ class SocialCubit extends Cubit<SocialStates> {
       emit(SocialGetPostErrorState(error.toString()));
     }
   }
+//================================================================================================================================
+// clear data of all posts
+
+  void clearPostData() {
+    allpostsData = [];
+    postId = [];
+  }
 
 //================================================================================================================================
 
@@ -904,6 +911,24 @@ class SocialCubit extends Cubit<SocialStates> {
       emit(SocialEditMessageSuccessState());
     }).catchError((error) {
       emit(SocialEditMessageErrorState());
+    });
+  }
+
+//================================================================================================================================
+  // Method to delete a chat from Firestore collection
+  void deleteChat(String receiverId) {
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(userDataModel!.user.uId)
+        .collection('chats')
+        .doc(receiverId)
+        .delete()
+        .then((value) {
+      userChatIds.remove(receiverId);
+      userChatsModel.removeWhere((userModel) => userModel.uId == receiverId);
+      emit(SocialDeleteChatSuccessState());
+    }).catchError((error) {
+      emit(SocialDeleteChatErrorState());
     });
   }
 
