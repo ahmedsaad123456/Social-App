@@ -29,6 +29,11 @@ class SocialChangeBottomNavBarState extends SocialStates {}
 
 
 
+
+
+
+// create new post 
+
 class SocialNewPostState extends SocialStates {}
 
 
@@ -63,7 +68,9 @@ class SocialUploadCoverImagePSuccessState extends SocialStates {}
 
 class SocialUploadCoverImageErrorState extends SocialStates {}
 
-// upload user data
+// update user data
+
+class SocialUpdateUserSuccessState extends SocialStates {}
 
 class SocialUpdateUserErrorState extends SocialStates {}
 
@@ -124,15 +131,30 @@ class SocialUnlikePostSuccessState extends SocialStates {}
 
 // chat
 
+// send message
 class SocialSendMessageSuccessState extends SocialStates {}
 
 class SocialSendMessageErrorState extends SocialStates {}
 
+// get message
+
 class SocialGetMessagesSuccessState extends SocialStates {}
+
+// delete message
 
 class SocialDeleteMessageSuccessState extends SocialStates {}
 
 class SocialDeleteMessageErrorState extends SocialStates {}
+
+// edit message
+
+class SocialChangeIsEditState extends SocialStates {}
+
+class SocialEditMessageSuccessState extends SocialStates {}
+
+class SocialEditMessageErrorState extends SocialStates {}
+
+class SocialSetMessageModelState extends SocialStates {}
 
 
 // send comments

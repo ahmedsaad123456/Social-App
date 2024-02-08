@@ -21,6 +21,8 @@ import 'package:social_app/modules/users/users_screen.dart';
 import 'package:social_app/shared/components/components.dart';
 import 'package:social_app/shared/components/constants.dart';
 
+// if i want to change variables in the cubit , must do it with function and emit state in it
+
 class SocialCubit extends Cubit<SocialStates> {
   SocialCubit() : super(SocialInitialState());
 
@@ -191,7 +193,7 @@ class SocialCubit extends Cubit<SocialStates> {
   // change the bottom nav bar index
   void changeBottomNavBar(index) {
     if (index == 1) {
-      if(users.isNotEmpty) {
+      if (users.isNotEmpty) {
         filterUsersForChats();
       }
     }
@@ -326,6 +328,7 @@ class SocialCubit extends Cubit<SocialStates> {
     String? cover,
     String? image,
   }) {
+    emit(SocialUpdateUserLoadingState());
     UserModel model = UserModel(
       name: name,
       email: userDataModel!.user.email,
@@ -342,6 +345,8 @@ class SocialCubit extends Cubit<SocialStates> {
         .doc(uId)
         .update(model.toMap())
         .then((value) {
+      emit(SocialUpdateUserSuccessState());
+
       getUserData();
     }).catchError((error) {
       emit(SocialUpdateUserErrorState());
@@ -837,6 +842,69 @@ class SocialCubit extends Cubit<SocialStates> {
         emit(SocialDeleteMessageErrorState());
       });
     }
+  }
+
+  //================================================================================================================================
+  // edit message
+
+  bool isEdit = false;
+
+  void changeEdit(bool edit) {
+    isEdit = edit;
+    emit(SocialChangeIsEditState());
+  }
+
+  //================================================================================================================================
+
+  MessageModel? editMessageModel;
+
+  void setEditMessageModel(MessageModel editModel) {
+    editMessageModel = editModel;
+    emit(SocialSetMessageModelState());
+  }
+
+  // Method to edit a message in Firestore collection based on its dateTime (unique format)
+  void editMessage(String receiverId, String newText) {
+    editMessageModel!.text = newText;
+    // edit the message in the sender collection
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(userDataModel!.user.uId)
+        .collection('chats')
+        .doc(receiverId)
+        .collection('messages')
+        .where('dateTime', isEqualTo: editMessageModel!.dateTime)
+        .get()
+        .then((querySnapshot) {
+      if (querySnapshot.docs.isNotEmpty) {
+        querySnapshot.docs.first.reference.update(editMessageModel!.toMap());
+      }
+      previousDate = null;
+
+      emit(SocialEditMessageSuccessState());
+    }).catchError((error) {
+      emit(SocialEditMessageErrorState());
+    });
+
+    // edit the message in the receiver collection
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(receiverId)
+        .collection('chats')
+        .doc(userDataModel!.user.uId)
+        .collection('messages')
+        .where('dateTime', isEqualTo: editMessageModel!.dateTime)
+        .get()
+        .then((querySnapshot) {
+      if (querySnapshot.docs.isNotEmpty) {
+        querySnapshot.docs.first.reference.update(editMessageModel!.toMap());
+      }
+      previousDate = null;
+
+      emit(SocialEditMessageSuccessState());
+    }).catchError((error) {
+      emit(SocialEditMessageErrorState());
+    });
   }
 
 //================================================================================================================================
