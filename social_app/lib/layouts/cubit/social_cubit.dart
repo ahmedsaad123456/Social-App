@@ -298,39 +298,230 @@ class SocialCubit extends Cubit<SocialStates> {
     });
   }
 
+  // clear profile image and cover image
+  void clearImage() {
+    profileImage = null;
+    coverImage = null;
+    emit(SocialClearImageSuccessState());
+  }
+
 //================================================================================================================================
 
   // update user data
+  // update user information for name , image and bio will affect on all users collection and posts collection
+  // this is trade-off to get data faster but in the same time update user information will be slower
+  // i do that because the operation of editing the profile is done rarely (in my opinion)
+  // i can change this in the future
+
   void updateUser({
     required String name,
     required String phone,
     required String bio,
     String? cover,
     String? image,
-  }) {
-    emit(SocialUpdateUserLoadingState());
-    UserModel model = UserModel(
-      name: name,
-      email: userDataModel!.user.email,
-      phone: phone,
-      uId: uId,
-      isEmailVerified: false,
-      bio: bio,
-      image: image ?? userDataModel!.user.image,
-      cover: cover ?? userDataModel!.user.cover,
-    );
+  }) async {
+    try {
+      emit(SocialUpdateUserLoadingState());
+      await _updateUserDocument(
+          userDataModel!.user.uId!, name, phone, bio, cover, image);
 
-    FirebaseFirestore.instance
-        .collection('users')
-        .doc(uId)
-        .update(model.toMap())
-        .then((value) {
+      // Check if name, bio, or image have changed
+      if (name != userDataModel!.user.name ||
+          bio != userDataModel!.user.bio ||
+          image != userDataModel!.user.image) {
+        await _updateUserRelatedDocuments(
+            userDataModel!.user.uId!, name, image, bio);
+        await _updateUserPosts(userDataModel!.user.uId!, name, image);
+      }
+
+      // in memory
+      updateUserDataAndPosts(
+          name: name, phone: phone, bio: bio, image: image, cover: cover);
+      // Success state
       emit(SocialUpdateUserSuccessState());
-
-      getUserData();
-    }).catchError((error) {
+    } catch (error) {
+      // Error state
       emit(SocialUpdateUserErrorState());
+    }
+  }
+
+  //================================================================================================================================
+
+  // update user information
+  Future<void> _updateUserDocument(String userId, String name, String phone,
+      String bio, String? cover, String? image) async {
+    await FirebaseFirestore.instance.collection('users').doc(userId).update({
+      'name': name,
+      'phone': phone,
+      'bio': bio,
+      'image': image ?? userDataModel!.user.image,
+      'cover': cover ?? userDataModel!.user.cover,
     });
+  }
+
+  //================================================================================================================================
+
+  // update chats , followings and followers in collection users
+  Future<void> _updateUserRelatedDocuments(
+      String userId, String name, String? image, String bio) async {
+    QuerySnapshot usersSnapshot =
+        await FirebaseFirestore.instance.collection('users').get();
+
+    for (QueryDocumentSnapshot userDoc in usersSnapshot.docs) {
+      // ignore if user is userId equal to userDocId
+      if (userDoc.id == userId) {
+        continue;
+      }
+
+      // Update chats a collection within the users
+      QuerySnapshot chatsSnapshot = await userDoc.reference
+          .collection('chats')
+          .where('uId', isEqualTo: userId)
+          .get();
+      for (QueryDocumentSnapshot chatDoc in chatsSnapshot.docs) {
+        await chatDoc.reference.update({
+          'name': name,
+          'image': image ?? userDataModel!.user.image,
+          'bio': bio,
+        });
+      }
+      // Update followers a collection within the users
+
+      QuerySnapshot followersSnapshot = await userDoc.reference
+          .collection('followers')
+          .where('uId', isEqualTo: userId)
+          .get();
+      for (QueryDocumentSnapshot followerDoc in followersSnapshot.docs) {
+        await followerDoc.reference.update({
+          'name': name,
+          'image': image ?? userDataModel!.user.image,
+          'bio': bio,
+        });
+      }
+
+      // Update followings a collection within the users
+
+      QuerySnapshot followingsSnapshot = await userDoc.reference
+          .collection('followings')
+          .where('uId', isEqualTo: userId)
+          .get();
+      for (QueryDocumentSnapshot followingDoc in followingsSnapshot.docs) {
+        await followingDoc.reference.update({
+          'name': name,
+          'image': image ?? userDataModel!.user.image,
+          'bio': bio,
+        });
+      }
+    }
+  }
+
+  //================================================================================================================================
+
+  // update all posts , comments and likes
+
+  Future<void> _updateUserPosts(
+      String userId, String name, String? image) async {
+    QuerySnapshot postsSnapshot =
+        await FirebaseFirestore.instance.collection('posts').get();
+
+    for (QueryDocumentSnapshot postDoc in postsSnapshot.docs) {
+      final postData = postDoc.data();
+
+      final PostModel model =
+          PostModel.fromJson(postData as Map<String, dynamic>?);
+
+      // Update post if the postUid is equal to userId
+      if (model.uId == userId) {
+        await postDoc.reference.update({
+          'name': name,
+          'image': image ?? userDataModel!.user.image,
+        });
+      }
+
+      // Update comments and likes collections within the post
+      QuerySnapshot commentsSnapshot = await postDoc.reference
+          .collection('comments')
+          .where('uId', isEqualTo: userId)
+          .get();
+      for (QueryDocumentSnapshot commentDoc in commentsSnapshot.docs) {
+        await commentDoc.reference.update({
+          'name': name,
+          'image': image ?? userDataModel!.user.image,
+        });
+      }
+
+      QuerySnapshot likesSnapshot = await postDoc.reference
+          .collection('likes')
+          .where('uId', isEqualTo: userId)
+          .get();
+      for (QueryDocumentSnapshot likeDoc in likesSnapshot.docs) {
+        await likeDoc.reference.update({
+          'name': name,
+          'image': image ?? userDataModel!.user.image,
+        });
+      }
+    }
+  }
+
+//================================================================================================================================
+
+  // update data in the memory
+  void updateUserDataAndPosts({
+    required String name,
+    required String phone,
+    required String bio,
+    String? cover,
+    String? image,
+  }) {
+    bool isChanged =
+        userDataModel!.user.name != name || userDataModel!.user.image != image;
+    // Update userDataModel
+    userDataModel!.user.name = name;
+    userDataModel!.user.phone = phone;
+    userDataModel!.user.bio = bio;
+    if (cover != null) userDataModel!.user.cover = cover;
+    if (image != null) userDataModel!.user.image = image;
+
+    if (isChanged) {
+      // Update posts in loggedInUserpostsData
+      for (var post in loggedInUserpostsData) {
+        post.post.name = name;
+        if (image != null) post.post.image = image;
+
+        for (var comment in post.comments) {
+          if (comment.uId == userDataModel!.user.uId) {
+            comment.name = name;
+            if (image != null) comment.image = image;
+          }
+        }
+        for (var like in post.likes) {
+          if (like.uId == userDataModel!.user.uId) {
+            like.name = name;
+            if (image != null) like.image = image;
+          }
+        }
+      }
+
+      // Update posts in allpostsData
+      for (var post in allpostsData) {
+        for (var comment in post.comments) {
+          if (comment.uId == userDataModel!.user.uId) {
+            comment.name = name;
+            if (image != null) comment.image = image;
+          }
+        }
+        for (var like in post.likes) {
+          if (like.uId == userDataModel!.user.uId) {
+            like.name = name;
+            if (image != null) like.image = image;
+          }
+        }
+        if (post.post.uId == userDataModel!.user.uId) {
+          post.post.name = name;
+          if (image != null) post.post.image = image;
+        }
+      }
+    }
   }
 
 //================================================================================================================================

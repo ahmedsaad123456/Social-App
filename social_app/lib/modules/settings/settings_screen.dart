@@ -42,7 +42,7 @@ class SettingsScreen extends StatelessWidget {
         var userModel = SocialCubit.get(context).userDataModel!.user;
 
         return ConditionalBuilder(
-          condition: SocialCubit.get(context).userDataModel != null,
+          condition: (SocialCubit.get(context).userDataModel != null || SocialCubit.get(context).isLoggedInPosts != null),
           builder: (context) => SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
             child: Padding(
@@ -66,7 +66,7 @@ class SettingsScreen extends StatelessWidget {
                             ),
                             // Use the loadingBuilder property of NetworkImage to show a placeholder while the image is loading
                             child: Image.network(
-                              userModel.cover!,
+                              userModel.cover?? '',
                               fit: BoxFit.cover,
                               loadingBuilder: (BuildContext context,
                                   Widget child,
@@ -100,7 +100,7 @@ class SettingsScreen extends StatelessWidget {
                                 Colors.white, // Set background color to white
                             child: ClipOval(
                               child: Image.network(
-                                userModel.image!,
+                                userModel.image ?? '',
                                 width: 120,
                                 height: 120,
                                 fit: BoxFit.cover,

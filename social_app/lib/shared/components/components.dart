@@ -212,18 +212,19 @@ PreferredSizeWidget defaultAppBar({
   required BuildContext context,
   String? title,
   List<Widget>? actions,
-}) =>
-    AppBar(
-      leading: IconButton(
-        icon: const Icon(IconBroken.Arrow___Left_2),
-        onPressed: () {
-          Navigator.pop(context);
-        },
-      ),
-      titleSpacing: 5.0,
-      title: Text(title ?? ''),
-      actions: actions,
-    );
+  Function()? fun,
+}) {
+  fun ??= () {
+      Navigator.pop(context);
+    };
+  return AppBar(
+    leading:
+        IconButton(icon: const Icon(IconBroken.Arrow___Left_2), onPressed: fun),
+    titleSpacing: 5.0,
+    title: Text(title ?? ''),
+    actions: actions,
+  );
+}
 
 //================================================================================================================================
 
@@ -270,7 +271,7 @@ Widget buildPostItem(
                       Colors.white, // Set background color to white
                   child: ClipOval(
                     child: Image.network(
-                      model.post.image!,
+                      model.post.image ?? '',
                       width: 50,
                       height: 50,
                       fit: BoxFit.cover,
@@ -867,16 +868,15 @@ Widget buildFollowUserItem(FollowModel model, context, ScreenType? screen) {
 
 // build comment item
 Widget buildCommentItem(
-    CommentModel comment,
-    context,
-    ScreenType? screen,
-    String postId,
-    String commentId,
-    int postIndex,
-    int commentIndex,
-    String postUserId,
-    ) {
-
+  CommentModel comment,
+  context,
+  ScreenType? screen,
+  String postId,
+  String commentId,
+  int postIndex,
+  int commentIndex,
+  String postUserId,
+) {
   return Padding(
     padding: const EdgeInsets.only(
       top: 20.0,
@@ -1040,7 +1040,7 @@ Widget buildCommentItem(
                         ],
                       ),
                     );
-                  } 
+                  }
                 },
               ),
           ],

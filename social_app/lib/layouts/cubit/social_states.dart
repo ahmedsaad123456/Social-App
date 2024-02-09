@@ -71,6 +71,10 @@ class SocialUploadCoverImagePSuccessState extends SocialStates {}
 
 class SocialUploadCoverImageErrorState extends SocialStates {}
 
+// clear Image
+class SocialClearImageSuccessState extends SocialStates {}
+
+
 // update user data
 
 class SocialUpdateUserSuccessState extends SocialStates {}

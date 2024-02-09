@@ -17,9 +17,12 @@ class EditProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocConsumer<SocialCubit, SocialStates>(
       listener: (context, state) {
-        if (state is SocialGetUserSuccessState) {
+        if (state is SocialUpdateUserSuccessState) {
           messageScreen(
               message: 'updated successfully', state: ToastStates.SUCCESS);
+        }
+        if (state is SocialUpdateUserErrorState) {
+          messageScreen(message: 'updated failed', state: ToastStates.ERROR);
         }
       },
       builder: (context, state) {
@@ -31,25 +34,33 @@ class EditProfileScreen extends StatelessWidget {
         bioController.text = userModel.bio ?? '';
         phoneController.text = userModel.phone ?? '';
         return Scaffold(
-          appBar:
-              defaultAppBar(context: context, title: 'Edit Profile', actions: [
-            defaultTextButton(
-                fun: () {
-                  SocialCubit.get(context).updateUser(
-                      name: nameController.text,
-                      phone: phoneController.text,
-                      bio: bioController.text);
-                },
-                text: 'UPDATE'),
-            const SizedBox(
-              width: 15.0,
-            )
-          ]),
+          appBar: defaultAppBar(
+              context: context,
+              title: 'Edit Profile',
+              fun: () {
+                SocialCubit.get(context).clearImage();
+                Navigator.pop(context);
+              },
+              actions: [
+                defaultTextButton(
+                    fun: () {
+                      SocialCubit.get(context).updateUser(
+                          name: nameController.text,
+                          phone: phoneController.text,
+                          bio: bioController.text);
+                    },
+                    text: 'UPDATE'),
+                const SizedBox(
+                  width: 15.0,
+                )
+              ]),
           body: SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: Column(
                 children: [
+                  if (state is SocialUpdateUserLoadingState)
+                    const LinearProgressIndicator(),
                   Container(
                     height: 190.0,
                     child: Stack(
@@ -236,5 +247,4 @@ class EditProfileScreen extends StatelessWidget {
   }
 
 //================================================================================================================================
-
 }
