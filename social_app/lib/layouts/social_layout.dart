@@ -27,12 +27,12 @@ class SocialLayout extends StatelessWidget {
             title: Text(cubit
                 .titles[cubit.currentIndex]), // Display current screen title
             actions: [
-                IconButton(
-                  icon: const Icon(
-                    IconBroken.Notification, // Notification icon
-                  ),
-                  onPressed: () {},
-                ),
+                // IconButton(
+                //   icon: const Icon(
+                //     IconBroken.Notification, // Notification icon
+                //   ),
+                //   onPressed: () {},
+                // ),
               if (cubit.currentIndex == 3)
                 IconButton(
                   icon: const Icon(

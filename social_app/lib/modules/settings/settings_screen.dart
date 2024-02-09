@@ -39,10 +39,9 @@ class SettingsScreen extends StatelessWidget {
         }
       },
       builder: (context, state) {
-        var userModel = SocialCubit.get(context).userDataModel!.user;
 
         return ConditionalBuilder(
-          condition: (SocialCubit.get(context).userDataModel != null || SocialCubit.get(context).isLoggedInPosts != null),
+          condition: (SocialCubit.get(context).userDataModel != null),
           builder: (context) => SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
             child: Padding(
@@ -66,7 +65,7 @@ class SettingsScreen extends StatelessWidget {
                             ),
                             // Use the loadingBuilder property of NetworkImage to show a placeholder while the image is loading
                             child: Image.network(
-                              userModel.cover?? '',
+                              SocialCubit.get(context).userDataModel!.user.cover?? '',
                               fit: BoxFit.cover,
                               loadingBuilder: (BuildContext context,
                                   Widget child,
@@ -100,7 +99,7 @@ class SettingsScreen extends StatelessWidget {
                                 Colors.white, // Set background color to white
                             child: ClipOval(
                               child: Image.network(
-                                userModel.image ?? '',
+                                SocialCubit.get(context).userDataModel!.user.image ?? '',
                                 width: 120,
                                 height: 120,
                                 fit: BoxFit.cover,
@@ -134,11 +133,11 @@ class SettingsScreen extends StatelessWidget {
                     height: 5.0,
                   ),
                   Text(
-                    '${userModel.name}',
+                    '${SocialCubit.get(context).userDataModel!.user.name}',
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   Text(
-                    '${userModel.bio}',
+                    '${SocialCubit.get(context).userDataModel!.user.bio}',
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                   Padding(
