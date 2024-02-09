@@ -44,7 +44,7 @@ class LikesScreen extends StatelessWidget {
             SocialCubit.get(context)
                 .getSpecificUserData(specificUserId: model.uId!);
 
-            navigateTo(context, const UserProfileScreen());
+            navigateTo(context, const UserProfileScreen(false));
           } else {
             messageScreen(
                 message: "go to settings to show your profile",

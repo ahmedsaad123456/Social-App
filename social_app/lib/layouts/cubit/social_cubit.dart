@@ -31,10 +31,6 @@ class SocialCubit extends Cubit<SocialStates> {
   // Data of logged in user
   UserDataModel? userDataModel;
 
-  Set<String> userChatIds = {};
-
-  List<UserModel> userChatsModel = [];
-
   void getUserData() async {
     emit(SocialGetUserLoadingState());
 
@@ -48,12 +44,14 @@ class SocialCubit extends Cubit<SocialStates> {
 
       List<FollowModel> followers = [];
       List<FollowModel> followings = [];
+      List<FollowModel> userChatsModel = [];
 
       // Iterate over the chats collection and add document IDs to the set
       QuerySnapshot chatsQuerySnapshot =
           await userSnapshot.reference.collection('chats').get();
       for (var chatSnapshot in chatsQuerySnapshot.docs) {
-        userChatIds.add(chatSnapshot.id);
+        userChatsModel.add(
+            FollowModel.fromJson(chatSnapshot.data() as Map<String, dynamic>));
       }
 
       // get followers of the user
@@ -75,10 +73,10 @@ class SocialCubit extends Cubit<SocialStates> {
 
       // Create user data model instance
       UserDataModel userData = UserDataModel(
-        user: UserModel.fromJson(userSnapshot.data() as Map<String, dynamic>),
-        followers: followers,
-        followings: followings,
-      );
+          user: UserModel.fromJson(userSnapshot.data() as Map<String, dynamic>),
+          followers: followers,
+          followings: followings,
+          userChatsModel: userChatsModel);
 
       userDataModel = userData;
 
@@ -131,6 +129,7 @@ class SocialCubit extends Cubit<SocialStates> {
         for (QueryDocumentSnapshot postSnapshot in postQuerySnapshot.docs) {
           List<LikeModel> likesUsers = [];
           List<CommentModel> commentUser = [];
+          List<String> commentsIds = [];
 
           // get likes of the post
           QuerySnapshot likesQuerySnapshot =
@@ -147,18 +146,19 @@ class SocialCubit extends Cubit<SocialStates> {
           for (var userSnapshot in commentsQuerySnapshot.docs) {
             commentUser.add(CommentModel.fromJson(
                 userSnapshot.data() as Map<String, dynamic>));
+            commentsIds.add(userSnapshot.id);
           }
 
           bool isLiked = likesUsers.any((like) => like.uId == uId);
 
           // Create PostData instance
           PostDataModel postData = PostDataModel(
-            post:
-                PostModel.fromJson(postSnapshot.data() as Map<String, dynamic>),
-            likes: likesUsers,
-            comments: commentUser,
-            isLiked: isLiked,
-          );
+              post: PostModel.fromJson(
+                  postSnapshot.data() as Map<String, dynamic>),
+              likes: likesUsers,
+              comments: commentUser,
+              isLiked: isLiked,
+              commentsId: commentsIds);
 
           // Store post data in the map
           loggedInUserpostId.add(postSnapshot.id);
@@ -192,11 +192,6 @@ class SocialCubit extends Cubit<SocialStates> {
 
   // change the bottom nav bar index
   void changeBottomNavBar(index) {
-    if (index == 1) {
-      if (users.isNotEmpty) {
-        filterUsersForChats();
-      }
-    }
     if (index == 2) {
       // emit state to navigate to create post screen
       emit(SocialNewPostState());
@@ -216,21 +211,6 @@ class SocialCubit extends Cubit<SocialStates> {
     'Users',
     'Settings',
   ];
-
-  //================================================================================================================================
-
-  void filterUsersForChats() {
-    userChatsModel.clear(); // Clear the existing list
-
-    // Iterate over the users list
-    for (UserModel user in users) {
-      // Check if the user's ID is in the userChatIds set
-      if (userChatIds.contains(user.uId)) {
-        // If yes, add the user to the userChatsModel list
-        userChatsModel.add(user);
-      }
-    }
-  }
 
 //================================================================================================================================
 
@@ -426,6 +406,7 @@ class SocialCubit extends Cubit<SocialStates> {
         likes: [],
         comments: [],
         isLiked: false,
+        commentsId: [],
       );
 
       loggedInUserpostsData.insert(0, postData);
@@ -441,32 +422,44 @@ class SocialCubit extends Cubit<SocialStates> {
 // delete post
   void deletePost(String postID, int index, ScreenType screen) {
     emit(SocialDeletePostLoadingState());
-    FirebaseFirestore.instance
-        .collection('posts')
-        .doc(postID)
-        .delete()
-        .then((value) {
+
+    // Reference to the post document
+    var postRef = FirebaseFirestore.instance.collection('posts').doc(postID);
+
+    // Delete the comments subcollection
+    var commentsRef = postRef.collection('comments');
+    commentsRef.get().then((querySnapshot) {
+      for (var doc in querySnapshot.docs) {
+        doc.reference.delete();
+      }
+
+      // Delete the likes subcollection
+      var likesRef = postRef.collection('likes');
+      return likesRef.get();
+    }).then((querySnapshot) {
+      for (var doc in querySnapshot.docs) {
+        doc.reference.delete();
+      }
+
+      // Once subcollections are deleted, delete the post document
+      return postRef.delete();
+    }).then((value) {
+      // Remove post from appropriate lists
       if (screen == ScreenType.HOME) {
-        // If screen is HOME, delete the post from the home
         allpostsData.removeAt(index);
         postId.remove(postID);
 
-        // Check if the post is in the posts of the logged in user
         int userPostIndex = loggedInUserpostId.indexOf(postID);
         if (userPostIndex != -1) {
-          // If the postId is found in the list, delete the post from loggedInUserpostsData
           loggedInUserpostsData.removeAt(userPostIndex);
           loggedInUserpostId.remove(postID);
         }
       } else if (screen == ScreenType.SETTINGS) {
-        // If screen is SETTINGS, delete the post from loggedInUserpostsData
         loggedInUserpostsData.removeAt(index);
         loggedInUserpostId.remove(postID);
 
-        // Check if the post is in the posts of the home
         int userPostIndex = postId.indexOf(postID);
         if (userPostIndex != -1) {
-          // If the postId is found in the list, delete the post from the home
           allpostsData.removeAt(userPostIndex);
           postId.remove(postID);
         }
@@ -561,6 +554,7 @@ class SocialCubit extends Cubit<SocialStates> {
         for (QueryDocumentSnapshot postSnapshot in postQuerySnapshot.docs) {
           List<LikeModel> likesUsers = [];
           List<CommentModel> commentUser = [];
+          List<String> commentsId = [];
 
           // get likes of the post
           QuerySnapshot likesQuerySnapshot =
@@ -577,18 +571,19 @@ class SocialCubit extends Cubit<SocialStates> {
           for (var userSnapshot in commentsQuerySnapshot.docs) {
             commentUser.add(CommentModel.fromJson(
                 userSnapshot.data() as Map<String, dynamic>));
+            commentsId.add(userSnapshot.id);
           }
 
           bool isLiked = likesUsers.any((like) => like.uId == uId);
 
           // Create PostData instance
           PostDataModel postData = PostDataModel(
-            post:
-                PostModel.fromJson(postSnapshot.data() as Map<String, dynamic>),
-            likes: likesUsers,
-            comments: commentUser,
-            isLiked: isLiked,
-          );
+              post: PostModel.fromJson(
+                  postSnapshot.data() as Map<String, dynamic>),
+              likes: likesUsers,
+              comments: commentUser,
+              isLiked: isLiked,
+              commentsId: commentsId);
 
           // Store post data in the map
           postId.add(postSnapshot.id);
@@ -608,6 +603,7 @@ class SocialCubit extends Cubit<SocialStates> {
   void clearPostData() {
     allpostsData = [];
     postId = [];
+    emit(SocialClearPostSuccessState());
   }
 
 //================================================================================================================================
@@ -762,88 +758,122 @@ class SocialCubit extends Cubit<SocialStates> {
 //================================================================================================================================
 
   // get all users
-  List<UserModel> users = [];
+  List<FollowModel> users = [];
 
   // list to search for users
-  List<UserModel> usersSearch = [];
+  List<FollowModel> usersSearch = [];
 
-  void getAllUsersData() {
+// function to get users data
+  void getAllUsersData({bool loadMore = false}) {
     emit(SocialGetAllUsersLoadingState());
-    if (users.isEmpty) {
-      FirebaseFirestore.instance.collection('users').get().then((value) {
-        if (value.docs.isNotEmpty) {
-          for (var element in value.docs) {
-            // store all users in the list expect the loggedIn user
-            if (element.data()['uId'] != userDataModel!.user.uId) {
-              users.add(UserModel.fromJson(element.data()));
-            }
-          }
 
-          // store all users in the search list
-          usersSearch = users;
+    if (!loadMore) {
+      // Clear the existing users list if not loading more
+      users.clear();
+    }
+
+    // Query reference for users collection
+    Query usersQuery = FirebaseFirestore.instance
+        .collection('users')
+        .where('uId', isNotEqualTo: userDataModel!.user.uId);
+
+    // If loading more and we have existing users, fetch next batch after the last user
+    if (loadMore && users.isNotEmpty) {
+      usersQuery =
+          usersQuery.orderBy('uId').startAfter([users.last.uId]).limit(3);
+    } else {
+      usersQuery = usersQuery.orderBy('uId').limit(3);
+    }
+
+    // Fetch users based on the query
+    usersQuery.get().then((value) {
+      if (value.docs.isNotEmpty) {
+        for (var element in value.docs) {
+          users.add(
+              FollowModel.fromJson(element.data() as Map<String, dynamic>?));
         }
         emit(SocialGetAllUsersSuccessState());
-      }).catchError((error) {
-        emit(SocialGetAllUsersErrorState(error.toString()));
-      });
-    }
+      } else {
+        // If no more users are available
+        emit(SocialGetAllUsersEmptyState());
+      }
+    }).catchError((error) {
+      emit(SocialGetAllUsersErrorState(error.toString()));
+    });
   }
 
 //================================================================================================================================
 
   void searchUsers({required String name}) {
     emit(SocialGetSearchUsersLoadingState());
-    FirebaseFirestore.instance
-        .collection('users')
-        .orderBy("name")
-        .startAt([name])
-        .endAt(["$name\uf8ff"])
-        .get()
-        .then((value) {
-          usersSearch = [];
-          if (value.docs.isNotEmpty) {
-            for (var element in value.docs) {
-              // store all search users in the list expect the loggedIn user
-              if (element.data()['uId'] != userDataModel!.user.uId) {
-                usersSearch.add(UserModel.fromJson(element.data()));
+    if (name.isNotEmpty) {
+      FirebaseFirestore.instance
+          .collection('users')
+          .orderBy("name")
+          .startAt([name])
+          .endAt(["$name\uf8ff"])
+          .get()
+          .then((value) {
+            usersSearch = [];
+            if (value.docs.isNotEmpty) {
+              for (var element in value.docs) {
+                // store all search users in the list expect the loggedIn user
+                if (element.data()['uId'] != userDataModel!.user.uId) {
+                  usersSearch.add(FollowModel.fromJson(element.data()));
+                }
               }
             }
-          }
-          emit(SocialGetSearchUsersSuccessState());
-        })
-        .catchError((error) {
-          emit(SocialGetSearchUsersErrorState(error.toString()));
-        });
+            emit(SocialGetSearchUsersSuccessState());
+          })
+          .catchError((error) {
+            emit(SocialGetSearchUsersErrorState(error.toString()));
+          });
+    } else {
+      usersSearch = [];
+      emit(SocialGetSearchUsersSuccessState());
+    }
   }
 
 //================================================================================================================================
   void sendMessage({
-    required String receiverId,
+    required FollowModel user,
     required String text,
     required String dateTime,
   }) {
     MessageModel model = MessageModel(
       text: text,
-      receiverId: receiverId,
+      receiverId: user.uId,
       dateTime: dateTime,
       senderId: userDataModel!.user.uId,
     );
 
-    // add receiver id to the list to appear in the chats
-    userChatIds.add(receiverId);
+    // add receiver to the chat list to appear in the chats
+    bool isFound = userDataModel!.userChatsModel
+        .any((chatUser) => chatUser.uId == user.uId);
+
+    if (!isFound) {
+      userDataModel!.userChatsModel.add(user);
+    }
+
+    // follow model to logged in user
+    FollowModel loggedInModel = FollowModel(
+      bio: userDataModel!.user.bio,
+      uId: userDataModel!.user.uId,
+      image: userDataModel!.user.image,
+      name: userDataModel!.user.name,
+    );
 
     // Add message to the receiver's chat collection
     FirebaseFirestore.instance
         .collection('users')
-        .doc(receiverId)
+        .doc(user.uId)
         .collection('chats')
         .doc(userDataModel!.user.uId)
-        .set({
-      'uId': userDataModel!.user.uId, // Add sender's uId to receiver's chat
-    }).then((value) {
+        .set(loggedInModel.toMap())
+        .then((value) {
       FirebaseFirestore.instance
           .collection('users')
-          .doc(receiverId)
+          .doc(user.uId)
           .collection('chats')
           .doc(userDataModel!.user.uId)
           .collection('messages')
@@ -863,15 +893,14 @@ class SocialCubit extends Cubit<SocialStates> {
         .collection('users')
         .doc(userDataModel!.user.uId)
         .collection('chats')
-        .doc(receiverId)
-        .set({
-      'uId': receiverId, // Add receiver's uId to sender's chat
-    }).then((value) {
+        .doc(user.uId)
+        .set(user.toMap())
+        .then((value) {
       FirebaseFirestore.instance
           .collection('users')
           .doc(userDataModel!.user.uId)
           .collection('chats')
-          .doc(receiverId)
+          .doc(user.uId)
           .collection('messages')
           .add(model.toMap())
           .then((value) {
@@ -935,11 +964,11 @@ class SocialCubit extends Cubit<SocialStates> {
   //================================================================================================================================
   // edit message
 
-  bool isEdit = false;
+  bool isEditMessage = false;
 
-  void changeEdit(bool edit) {
-    isEdit = edit;
-    emit(SocialChangeIsEditState());
+  void changeEditMessage(bool edit) {
+    isEditMessage = edit;
+    emit(SocialChangeIsEditMessageState());
   }
 
   //================================================================================================================================
@@ -1003,11 +1032,25 @@ class SocialCubit extends Cubit<SocialStates> {
         .doc(userDataModel!.user.uId)
         .collection('chats')
         .doc(receiverId)
-        .delete()
-        .then((value) {
-      userChatIds.remove(receiverId);
-      userChatsModel.removeWhere((userModel) => userModel.uId == receiverId);
-      emit(SocialDeleteChatSuccessState());
+        .collection('messages')
+        .get()
+        .then((querySnapshot) {
+      for (DocumentSnapshot doc in querySnapshot.docs) {
+        doc.reference.delete();
+      }
+      FirebaseFirestore.instance
+          .collection('users')
+          .doc(userDataModel!.user.uId)
+          .collection('chats')
+          .doc(receiverId)
+          .delete()
+          .then((value) {
+        userDataModel!.userChatsModel
+            .removeWhere((userModel) => userModel.uId == receiverId);
+        emit(SocialDeleteChatSuccessState());
+      }).catchError((error) {
+        emit(SocialDeleteChatErrorState());
+      });
     }).catchError((error) {
       emit(SocialDeleteChatErrorState());
     });
@@ -1040,7 +1083,14 @@ class SocialCubit extends Cubit<SocialStates> {
       emit(SocialGetMessagesSuccessState());
     });
   }
+//================================================================================================================================
 
+// clear all messages
+
+  void clearMessages() {
+    messages = [];
+    emit(SocialclearMessagesSuccessState());
+  }
 //================================================================================================================================
 
   // Function to check if the date is different from the previous message
@@ -1060,10 +1110,10 @@ class SocialCubit extends Cubit<SocialStates> {
     required String text,
     required String postID,
     required int index,
-    // to trigger the position of the post (home or settings)
+    // to trigger the position of the post (home or settings or profile)
     required ScreenType screen,
   }) {
-    emit(SocialCommentPostLoadingState());
+    emit(SocialSendCommentPostLoadingState());
 
     CommentModel model = CommentModel(
       dateTime: DateTime.now().toString(),
@@ -1083,38 +1133,115 @@ class SocialCubit extends Cubit<SocialStates> {
       if (screen == ScreenType.HOME) {
         // If screen is HOME, update the comments list in allpostsData
         allpostsData[index].comments.add(model);
+        allpostsData[index].commentsId.add(value.id);
         // check if the post is in the posts of the logged in user
         int userPostIndex = loggedInUserpostId.indexOf(postID);
 
         if (userPostIndex != -1) {
           // If the postId is found in the list, update the comments list in loggedInUserpostsData
           loggedInUserpostsData[userPostIndex].comments.add(model);
+          loggedInUserpostsData[userPostIndex].commentsId.add(value.id);
         }
       } else if (screen == ScreenType.SETTINGS) {
         // If screen is Settings, update the comments list in loggedInUserpostsData
         loggedInUserpostsData[index].comments.add(model);
+        loggedInUserpostsData[index].commentsId.add(value.id);
+
         // check if the post is in the posts of the home
         int userPostIndex = postId.indexOf(postID);
 
         if (userPostIndex != -1) {
           // If the postId is found in the list, update the comments list in the home
           allpostsData[userPostIndex].comments.add(model);
+          allpostsData[userPostIndex].commentsId.add(value.id);
         }
       } else if (screen == ScreenType.PROFILE) {
         // If screen is profile, update the comments list in specificUserpostsData
         specificUserpostsData[index].comments.add(model);
+        specificUserpostsData[index].commentsId.add(value.id);
+
         // check if the post is in the posts of the home
         int userPostIndex = postId.indexOf(postID);
 
         if (userPostIndex != -1) {
           // If the postId is found in the list, update the comments list in the home
           allpostsData[userPostIndex].comments.add(model);
+          allpostsData[userPostIndex].commentsId.add(value.id);
         }
       }
 
-      emit(SocialCommentPostSuccessState());
+      emit(SocialSendCommentPostSuccessState());
     }).catchError((error) {
-      emit(SocialCommentPostErrorState());
+      emit(SocialSendCommentPostErrorState());
+    });
+  }
+
+//================================================================================================================================
+
+// delete comment from specific post
+  void deleteComment({
+    required String commentID,
+    required String postID,
+    required int postindex,
+    required int commentIndex,
+    // to trigger the position of the post (home or settings or profile)
+    required ScreenType screen,
+  }) {
+    emit(SocialDeleteCommentPostLoadingState());
+
+    FirebaseFirestore.instance
+        .collection('posts')
+        .doc(postID)
+        .collection('comments')
+        .doc(commentID)
+        .delete()
+        .then((value) {
+      // Check the value of the screen parameter
+      if (screen == ScreenType.HOME) {
+        // If screen is HOME, remove the comment from allpostsData
+        allpostsData[postindex].comments.removeAt(commentIndex);
+        allpostsData[postindex].commentsId.removeAt(commentIndex);
+        // check if the post is in the posts of the logged in user
+        int userPostIndex = loggedInUserpostId.indexOf(postID);
+
+        if (userPostIndex != -1) {
+          // If the postId is found in the list, delete the comment from loggedInUserpostsData
+          loggedInUserpostsData[userPostIndex].comments.removeAt(commentIndex);
+          loggedInUserpostsData[userPostIndex]
+              .commentsId
+              .removeAt(commentIndex);
+        }
+      } else if (screen == ScreenType.SETTINGS) {
+        // If screen is Settings, delete the comment from loggedInUserpostsData
+        loggedInUserpostsData[postindex].comments.removeAt(commentIndex);
+        loggedInUserpostsData[postindex].commentsId.removeAt(commentIndex);
+
+        // check if the post is in the posts of the home
+        int userPostIndex = postId.indexOf(postID);
+
+        if (userPostIndex != -1) {
+          // If the postId is found in the list, delete the comment from the home
+          allpostsData[userPostIndex].comments.removeAt(commentIndex);
+          allpostsData[userPostIndex].commentsId.removeAt(commentIndex);
+        }
+      } else if (screen == ScreenType.PROFILE) {
+        // If screen is profile, delete the comment from specificUserpostsData
+        specificUserpostsData[postindex].comments.removeAt(commentIndex);
+        specificUserpostsData[postindex].commentsId.removeAt(commentIndex);
+
+        // check if the post is in the posts of the home
+        int userPostIndex = postId.indexOf(postID);
+
+        if (userPostIndex != -1) {
+          // If the postId is found in the list, delete the comment from the home
+          allpostsData[userPostIndex].comments.removeAt(commentIndex);
+          allpostsData[userPostIndex].commentsId.removeAt(commentIndex);
+        }
+      }
+
+      emit(SocialDeleteCommentPostSuccessState());
+    }).catchError((error) {
+      emit(SocialDeleteCommentPostErrorState());
     });
   }
 
@@ -1258,6 +1385,7 @@ class SocialCubit extends Cubit<SocialStates> {
         user: UserModel.fromJson(userSnapshot.data() as Map<String, dynamic>),
         followers: followers,
         followings: followings,
+        userChatsModel: [],
       );
 
       specificUserDataModel = userData;
@@ -1312,6 +1440,7 @@ class SocialCubit extends Cubit<SocialStates> {
         for (QueryDocumentSnapshot postSnapshot in postQuerySnapshot.docs) {
           List<LikeModel> likesUsers = [];
           List<CommentModel> commentUser = [];
+          List<String> commentsIds = [];
 
           // get likes of the post
           QuerySnapshot likesQuerySnapshot =
@@ -1328,18 +1457,19 @@ class SocialCubit extends Cubit<SocialStates> {
           for (var userSnapshot in commentsQuerySnapshot.docs) {
             commentUser.add(CommentModel.fromJson(
                 userSnapshot.data() as Map<String, dynamic>));
+            commentsIds.add(userSnapshot.id);
           }
 
           bool isLiked = likesUsers.any((like) => like.uId == uId);
 
           // Create PostData instance
           PostDataModel postData = PostDataModel(
-            post:
-                PostModel.fromJson(postSnapshot.data() as Map<String, dynamic>),
-            likes: likesUsers,
-            comments: commentUser,
-            isLiked: isLiked,
-          );
+              post: PostModel.fromJson(
+                  postSnapshot.data() as Map<String, dynamic>),
+              likes: likesUsers,
+              comments: commentUser,
+              isLiked: isLiked,
+              commentsId: commentsIds);
 
           // Store post data in the map
           specificUserpostId.add(postSnapshot.id);
@@ -1371,6 +1501,7 @@ class SocialCubit extends Cubit<SocialStates> {
     specificUserpostsData = [];
     isPosts = null;
     previousDate = null;
+    emit(SocialClearSpecificUserSuccessState());
   }
 
 //================================================================================================================================

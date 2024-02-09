@@ -10,7 +10,7 @@ class EditPostScreen extends StatelessWidget {
   final textController = TextEditingController();
   final PostDataModel postDataModel;
 
-  final List<String> postId;
+  final String postId;
 
   final int index;
 
@@ -24,8 +24,7 @@ class EditPostScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<SocialCubit, SocialStates>(
-      listener: (context, state) {
-      },
+      listener: (context, state) {},
       builder: (context, state) {
         return Scaffold(
           appBar: defaultAppBar(
@@ -39,8 +38,8 @@ class EditPostScreen extends StatelessWidget {
                           message: "can't update to empty post",
                           state: ToastStates.ERROR);
                     } else {
-                      SocialCubit.get(context).editPost(postDataModel,
-                          postId[index], index, screen, textController.text);
+                      SocialCubit.get(context).editPost(postDataModel, postId,
+                          index, screen, textController.text);
                       Navigator.pop(context);
                     }
                   },

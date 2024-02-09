@@ -11,16 +11,16 @@ import 'package:social_app/shared/components/components.dart';
 class PostScreen extends StatelessWidget {
   final PostDataModel postDataModel;
 
-  final List<String> postId;
+  final String postId;
 
-  final int index;
+  final int postIndex;
 
   final ScreenType screen;
 
   final ScreenType fromScreen;
 
-  const PostScreen(
-      this.postDataModel, this.postId, this.index, this.screen, this.fromScreen,
+  const PostScreen(this.postDataModel, this.postId, this.postIndex, this.screen,
+      this.fromScreen,
       {super.key});
 
   @override
@@ -38,7 +38,9 @@ class PostScreen extends StatelessWidget {
           body: SingleChildScrollView(
             child: Column(
               children: [
-                buildPostItem(context, postDataModel, postId, index, fromScreen , isPostScreen: true),
+                buildPostItem(
+                    context, postDataModel, postId, postIndex, fromScreen,
+                    isPostScreen: true),
                 const SizedBox(
                   height: 10,
                 ),
@@ -63,7 +65,14 @@ class PostScreen extends StatelessWidget {
                     physics: const NeverScrollableScrollPhysics(),
                     itemBuilder: (context, index) {
                       return buildCommentItem(
-                          postDataModel.comments[index], context, fromScreen);
+                          postDataModel.comments[index],
+                          context,
+                          fromScreen,
+                          postId,
+                          postDataModel.commentsId[index],
+                          postIndex,
+                          index,
+                          postDataModel.post.uId!);
                     },
                     itemCount: postDataModel.comments.length),
               ],

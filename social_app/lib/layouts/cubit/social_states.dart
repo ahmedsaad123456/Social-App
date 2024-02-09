@@ -18,6 +18,9 @@ class SocialGetAllUsersLoadingState extends SocialStates {}
 
 class SocialGetAllUsersSuccessState extends SocialStates {}
 
+class SocialGetAllUsersEmptyState extends SocialStates {}
+
+
 class SocialGetAllUsersErrorState extends SocialStates {
   final String error;
   SocialGetAllUsersErrorState(this.error);
@@ -125,6 +128,9 @@ class SocialGetPostErrorState extends SocialStates {
   SocialGetPostErrorState(this.error);
 }
 
+
+
+
 class SocialGetPostEmptyState extends SocialStates{}
 
 // clear post data
@@ -161,6 +167,11 @@ class SocialSendMessageErrorState extends SocialStates {}
 
 class SocialGetMessagesSuccessState extends SocialStates {}
 
+// clear message
+
+class SocialclearMessagesSuccessState extends SocialStates {}
+
+
 // delete message
 
 class SocialDeleteMessageSuccessState extends SocialStates {}
@@ -169,7 +180,7 @@ class SocialDeleteMessageErrorState extends SocialStates {}
 
 // edit message
 
-class SocialChangeIsEditState extends SocialStates {}
+class SocialChangeIsEditMessageState extends SocialStates {}
 
 class SocialEditMessageSuccessState extends SocialStates {}
 
@@ -186,13 +197,22 @@ class SocialDeleteChatErrorState extends SocialStates {}
 
 // send comments
 
-class SocialCommentPostLoadingState extends SocialStates {}
+class SocialSendCommentPostLoadingState extends SocialStates {}
 
-class SocialCommentPostSuccessState extends SocialStates {}
+class SocialSendCommentPostSuccessState extends SocialStates {}
 
-class SocialCommentPostErrorState extends SocialStates {
-  
-}
+class SocialSendCommentPostErrorState extends SocialStates {}
+
+// delete comments
+
+class SocialDeleteCommentPostLoadingState extends SocialStates {}
+
+class SocialDeleteCommentPostSuccessState extends SocialStates {}
+
+class SocialDeleteCommentPostErrorState extends SocialStates {}
+
+
+
 
 // search for users
 
@@ -260,3 +280,8 @@ class SocialGetSpecificUserPostErrorState extends SocialStates {
 }
 
 class SocialGetSpecificUserPostEmptyState extends SocialStates{}
+
+
+// clear specific user data
+
+class SocialClearSpecificUserSuccessState extends SocialStates{}

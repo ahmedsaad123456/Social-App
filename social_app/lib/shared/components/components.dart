@@ -5,7 +5,6 @@ import 'package:social_app/layouts/cubit/social_cubit.dart';
 import 'package:social_app/models/comment_model.dart';
 import 'package:social_app/models/follow_model.dart';
 import 'package:social_app/models/post_data_model.dart';
-import 'package:social_app/models/user_model.dart';
 import 'package:social_app/modules/chat_details/chat_details_screen.dart';
 import 'package:social_app/modules/comments/comments_screen.dart';
 import 'package:social_app/modules/edit_post/edit_post_screen.dart';
@@ -229,7 +228,7 @@ PreferredSizeWidget defaultAppBar({
 //================================================================================================================================
 
 Widget buildPostItem(
-    context, PostDataModel model, List<String> postId, index, ScreenType screen,
+    context, PostDataModel model, String postId, index, ScreenType screen,
     {bool isPostScreen = false}) {
   var textController = TextEditingController();
 
@@ -254,7 +253,7 @@ Widget buildPostItem(
                   SocialCubit.get(context)
                       .getSpecificUserData(specificUserId: model.post.uId!);
 
-                  navigateTo(context, const UserProfileScreen());
+                  navigateTo(context, const UserProfileScreen(false));
                 } else {
                   messageScreen(
                       message: "go to settings to show your profile",
@@ -365,8 +364,45 @@ Widget buildPostItem(
                     },
                     onSelected: (value) {
                       if (value == 1) {
-                        SocialCubit.get(context)
-                            .deletePost(postId[index], index, screen);
+                        showDialog(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: const Text("Delete post"),
+                            content: const Text(
+                                "Are you sure you want to delete this post?"),
+                            actions: <Widget>[
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(ctx).pop();
+                                },
+                                child: Container(
+                                  color: Colors.red,
+                                  padding: const EdgeInsets.all(14),
+                                  child: const Text(
+                                    "cancel",
+                                    style: TextStyle(color: Colors.black),
+                                  ),
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  SocialCubit.get(context)
+                                      .deletePost(postId, index, screen);
+                                  Navigator.of(ctx).pop();
+                                },
+                                child: Container(
+                                  color: Colors.green,
+                                  padding: const EdgeInsets.all(14),
+                                  child: const Text(
+                                    "confirm",
+                                    style: TextStyle(color: Colors.black),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+
                         if (isPostScreen) {
                           Navigator.pop(context);
                         }
@@ -468,8 +504,10 @@ Widget buildPostItem(
                   // number of comments on the post
                   child: InkWell(
                     onTap: () {
-                      navigateTo(context,
-                          CommentsScreen(model.comments, index, screen));
+                      navigateTo(
+                          context,
+                          CommentsScreen(model.comments, model.commentsId,
+                              index, screen, postId, model.post.uId!));
                     },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
@@ -566,7 +604,7 @@ Widget buildPostItem(
                           } else {
                             SocialCubit.get(context).sendComment(
                                 text: textController.text,
-                                postID: postId[index],
+                                postID: postId,
                                 index: index,
                                 screen: screen);
 
@@ -603,14 +641,14 @@ Widget buildPostItem(
                   if (!isLiked) {
                     final cubit = SocialCubit.get(context);
                     bool likeSuccess = await cubit.likePost(
-                        postID: postId[index], index: index, screen: screen);
+                        postID: postId, index: index, screen: screen);
 
                     return !isLiked &&
                         likeSuccess; // Return the opposite of isLiked only if the like was successful
                   } else {
                     final cubit = SocialCubit.get(context);
                     bool unlikeSuccess = await cubit.unlikePost(
-                        postID: postId[index], index: index, screen: screen);
+                        postID: postId, index: index, screen: screen);
                     return isLiked &&
                         unlikeSuccess; // Return true to indicate unliking was successful
                   }
@@ -627,7 +665,7 @@ Widget buildPostItem(
 //================================================================================================================================
 
 // build user item
-Widget buildUserItem(UserModel model, context) {
+Widget buildUserItem(FollowModel model, context) {
   bool isFollow =
       SocialCubit.get(context).isInMyFollowings(followingUserId: model.uId!);
   return InkWell(
@@ -638,7 +676,7 @@ Widget buildUserItem(UserModel model, context) {
         SocialCubit.get(context)
             .getSpecificUserData(specificUserId: model.uId!);
 
-        navigateTo(context, const UserProfileScreen());
+        navigateTo(context, const UserProfileScreen(false));
       } else {
         messageScreen(
             message: "go to settings to show your profile",
@@ -716,7 +754,7 @@ Widget buildUserItem(UserModel model, context) {
           const SizedBox(width: 5),
           IconButton(
             icon: const Icon(
-              IconBroken.Message, // Notification icon
+              IconBroken.Message, // message icon
             ),
             onPressed: () {
               navigateTo(context, ChatDetailsScreen(model));
@@ -742,7 +780,7 @@ Widget buildFollowUserItem(FollowModel model, context, ScreenType? screen) {
           SocialCubit.get(context)
               .getSpecificUserData(specificUserId: model.uId!);
 
-          navigateTo(context, const UserProfileScreen());
+          navigateTo(context, const UserProfileScreen(false));
         } else {
           messageScreen(
               message: "go to settings to show your profile",
@@ -828,7 +866,17 @@ Widget buildFollowUserItem(FollowModel model, context, ScreenType? screen) {
 // =============================================================================================================================
 
 // build comment item
-Widget buildCommentItem(CommentModel comment, context, ScreenType? screen) {
+Widget buildCommentItem(
+    CommentModel comment,
+    context,
+    ScreenType? screen,
+    String postId,
+    String commentId,
+    int postIndex,
+    int commentIndex,
+    String postUserId,
+    ) {
+
   return Padding(
     padding: const EdgeInsets.only(
       top: 20.0,
@@ -851,7 +899,7 @@ Widget buildCommentItem(CommentModel comment, context, ScreenType? screen) {
                     SocialCubit.get(context)
                         .getSpecificUserData(specificUserId: comment.uId!);
 
-                    navigateTo(context, const UserProfileScreen());
+                    navigateTo(context, const UserProfileScreen(false));
                   } else {
                     messageScreen(
                         message: "go to settings to show your profile",
@@ -899,30 +947,102 @@ Widget buildCommentItem(CommentModel comment, context, ScreenType? screen) {
                       borderRadius: BorderRadius.circular(20.0)),
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Row(
                       children: [
-                        Text(
-                          comment.name ?? "",
-                          style: const TextStyle(
-                              color: Colors.black,
-                              fontSize: 16.0,
-                              fontWeight: FontWeight.w800),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              comment.name ?? "",
+                              style: const TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 16.0,
+                                  fontWeight: FontWeight.w800),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Expanded(
+                                child: Text(
+                              comment.text ?? "Loading!!",
+                              style: TextStyle(
+                                  color: Colors.grey[700], fontSize: 15.0),
+                            ))
+                          ],
                         ),
-                        Expanded(
-                            child: Text(
-                          comment.text ?? "Loading!!",
-                          style: TextStyle(
-                              color: Colors.grey[700], fontSize: 15.0),
-                        ))
                       ],
                     ),
                   ),
                 ),
               ),
             ),
+            if (postUserId ==
+                    SocialCubit.get(context).userDataModel!.user.uId ||
+                comment.uId == SocialCubit.get(context).userDataModel!.user.uId)
+              PopupMenuButton(
+                color: Colors.grey[300],
+                itemBuilder: (context) {
+                  return [
+                    const PopupMenuItem(
+                      value: 1,
+                      child: Row(
+                        children: [
+                          Icon(IconBroken.Delete),
+                          SizedBox(
+                            width: 10,
+                          ),
+                          Text("Delete")
+                        ],
+                      ),
+                    ),
+                  ];
+                },
+                onSelected: (value) {
+                  if (value == 1) {
+                    showDialog(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        title: const Text("Delete comment"),
+                        content: const Text(
+                            "Are you sure you want to delete this comment?"),
+                        actions: <Widget>[
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(ctx).pop();
+                            },
+                            child: Container(
+                              color: Colors.red,
+                              padding: const EdgeInsets.all(14),
+                              child: const Text(
+                                "cancel",
+                                style: TextStyle(color: Colors.black),
+                              ),
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              SocialCubit.get(context).deleteComment(
+                                  commentID: commentId,
+                                  postID: postId,
+                                  postindex: postIndex,
+                                  commentIndex: commentIndex,
+                                  screen: screen!);
+                              Navigator.of(ctx).pop();
+                            },
+                            child: Container(
+                              color: Colors.green,
+                              padding: const EdgeInsets.all(14),
+                              child: const Text(
+                                "confirm",
+                                style: TextStyle(color: Colors.black),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  } 
+                },
+              ),
           ],
         ),
         Padding(

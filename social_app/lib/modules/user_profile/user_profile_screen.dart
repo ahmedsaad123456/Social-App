@@ -13,7 +13,9 @@ import 'package:social_app/shared/styles/icon_broken.dart';
 // that allow to show his name, bio , image , coverImage and posts
 
 class UserProfileScreen extends StatelessWidget {
-  const UserProfileScreen({super.key});
+  final bool isFromChat;
+
+  const UserProfileScreen(this.isFromChat, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -279,13 +281,28 @@ class UserProfileScreen extends StatelessWidget {
                           const SizedBox(
                             width: 10.0,
                           ),
+                          if(!isFromChat)
                           OutlinedButton(
                             onPressed: () {
                               navigateTo(
                                   context,
-                                  ChatDetailsScreen(SocialCubit.get(context)
-                                      .specificUserDataModel!
-                                      .user));
+                                  ChatDetailsScreen(FollowModel(
+                                      bio: SocialCubit.get(context)
+                                          .specificUserDataModel!
+                                          .user
+                                          .bio,
+                                      image: SocialCubit.get(context)
+                                          .specificUserDataModel!
+                                          .user
+                                          .image,
+                                      name: SocialCubit.get(context)
+                                          .specificUserDataModel!
+                                          .user
+                                          .name,
+                                      uId: SocialCubit.get(context)
+                                          .specificUserDataModel!
+                                          .user
+                                          .uId)));
                             },
                             child: const Icon(
                               IconBroken.Message,
@@ -309,7 +326,7 @@ class UserProfileScreen extends StatelessWidget {
                             context,
                             SocialCubit.get(context)
                                 .specificUserpostsData[index],
-                            SocialCubit.get(context).specificUserpostId,
+                            SocialCubit.get(context).specificUserpostId[index],
                             index,
                             ScreenType.PROFILE),
                         itemCount: SocialCubit.get(context)

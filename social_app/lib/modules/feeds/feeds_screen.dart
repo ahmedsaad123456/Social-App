@@ -92,7 +92,7 @@ class FeedsScreen extends StatelessWidget {
                     itemBuilder: (context, index) => buildPostItem(
                         context,
                         SocialCubit.get(context).allpostsData[index],
-                        SocialCubit.get(context).postId,
+                        SocialCubit.get(context).postId[index],
                         index,
                         ScreenType.HOME),
                     itemCount: SocialCubit.get(context).allpostsData.length,

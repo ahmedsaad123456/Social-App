@@ -6,6 +6,7 @@ class PostDataModel {
   PostModel post;
   List<LikeModel> likes;
   List<CommentModel> comments;
+  List<String> commentsId;
   bool isLiked;
 
   PostDataModel({
@@ -13,5 +14,6 @@ class PostDataModel {
     required this.likes,
     required this.comments,
     required this.isLiked,
+    required this.commentsId
   });
 }

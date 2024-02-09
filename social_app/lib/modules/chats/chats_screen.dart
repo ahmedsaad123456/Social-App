@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:social_app/layouts/cubit/social_cubit.dart';
 import 'package:social_app/layouts/cubit/social_states.dart';
-import 'package:social_app/models/user_model.dart';
+import 'package:social_app/models/follow_model.dart';
 import 'package:social_app/modules/chat_details/chat_details_screen.dart';
 import 'package:social_app/shared/components/components.dart';
 import 'package:social_app/shared/styles/icon_broken.dart';
@@ -18,10 +18,9 @@ class ChatsScreen extends StatelessWidget {
     return BlocConsumer<SocialCubit, SocialStates>(
       listener: (context, state) {},
       builder: (context, state) {
-        SocialCubit.get(context).filterUsersForChats();
-        var chatUsers = SocialCubit.get(context).userChatsModel;
+        var chatUsers = SocialCubit.get(context).userDataModel!.userChatsModel;
         return ConditionalBuilder(
-          condition: SocialCubit.get(context).users.isNotEmpty,
+          condition: SocialCubit.get(context).userDataModel != null,
           builder: (context) => ListView.separated(
               physics: const BouncingScrollPhysics(),
               itemBuilder: (context, index) =>
@@ -39,7 +38,7 @@ class ChatsScreen extends StatelessWidget {
 //================================================================================================================================
 
   // build chat item
-  Widget buildChatItem(UserModel model, context) {
+  Widget buildChatItem(FollowModel model, context) {
     GlobalKey key = GlobalKey();
 
     return InkWell(
@@ -124,7 +123,7 @@ class ChatsScreen extends StatelessWidget {
               backgroundColor: Colors.white, // Set background color to white
               child: ClipOval(
                 child: Image.network(
-                  model.image!,
+                  model.image?? '',
                   width: 50,
                   height: 50,
                   fit: BoxFit.cover,

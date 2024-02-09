@@ -229,7 +229,43 @@ class SettingsScreen extends StatelessWidget {
                       ),
                       OutlinedButton(
                         onPressed: () {
-                          signOut(context);
+                          showDialog(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              title: const Text("Log out"),
+                              content: const Text(
+                                  "Are you sure you want to log out?"),
+                              actions: <Widget>[
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(ctx).pop();
+                                  },
+                                  child: Container(
+                                    color: Colors.red,
+                                    padding: const EdgeInsets.all(14),
+                                    child: const Text(
+                                      "No",
+                                      style: TextStyle(color: Colors.black),
+                                    ),
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    signOut(context);
+                                    Navigator.of(ctx).pop();
+                                  },
+                                  child: Container(
+                                    color: Colors.green,
+                                    padding: const EdgeInsets.all(14),
+                                    child: const Text(
+                                      "Yes",
+                                      style: TextStyle(color: Colors.black),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
                         },
                         child: const Icon(
                           Icons.exit_to_app,
@@ -277,7 +313,7 @@ class SettingsScreen extends StatelessWidget {
                     itemBuilder: (context, index) => buildPostItem(
                         context,
                         SocialCubit.get(context).loggedInUserpostsData[index],
-                        SocialCubit.get(context).loggedInUserpostId,
+                        SocialCubit.get(context).loggedInUserpostId[index],
                         index,
                         ScreenType.SETTINGS),
                     itemCount:
@@ -332,8 +368,6 @@ void signOut(context) {
       SocialCubit.get(context).usersSearch = [];
       SocialCubit.get(context).changeBottomNavBar(0);
       SocialCubit.get(context).isLoggedInPosts = null;
-      SocialCubit.get(context).userChatIds = {};
-      SocialCubit.get(context).userChatsModel = [];
 
       // Navigate to the LoginScreen after signing out.
       navigateAndFinish(

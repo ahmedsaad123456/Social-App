@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:social_app/layouts/cubit/social_cubit.dart';
 import 'package:social_app/layouts/cubit/social_states.dart';
-import 'package:social_app/models/user_model.dart';
+import 'package:social_app/models/follow_model.dart';
 import 'package:social_app/shared/components/components.dart';
 
 //================================================================================================================================
@@ -63,7 +63,7 @@ class UsersSearchScreen extends StatelessWidget {
 //================================================================================================================================
 
   // Widget to build the search results
-  Widget searchBuilder(List<UserModel> list, context, {isSearch = false}) => ConditionalBuilder(
+  Widget searchBuilder(List<FollowModel> list, context, {isSearch = false}) => ConditionalBuilder(
     condition: list.isNotEmpty ,
     builder: (context) => ListView.separated(
       physics: const BouncingScrollPhysics(),

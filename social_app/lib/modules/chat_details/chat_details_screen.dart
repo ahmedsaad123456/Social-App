@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:social_app/layouts/cubit/social_cubit.dart';
 import 'package:social_app/layouts/cubit/social_states.dart';
+import 'package:social_app/models/follow_model.dart';
 import 'package:social_app/models/message_model.dart';
-import 'package:social_app/models/user_model.dart';
 import 'package:social_app/modules/user_profile/user_profile_screen.dart';
 import 'package:social_app/shared/components/components.dart';
 import 'package:social_app/shared/styles/colors.dart';
@@ -13,7 +13,7 @@ import 'package:social_app/shared/styles/icon_broken.dart';
 // ignore: must_be_immutable
 class ChatDetailsScreen extends StatelessWidget {
   // user in chat
-  final UserModel userModel;
+  final FollowModel userModel;
   ChatDetailsScreen(this.userModel, {super.key});
 
   final messageController = TextEditingController();
@@ -33,8 +33,8 @@ class ChatDetailsScreen extends StatelessWidget {
               appBar: AppBar(
                 leading: BackButton(
                   onPressed: () {
-                    SocialCubit.get(context).previousDate = null;
-                    SocialCubit.get(context).messages = [];
+                    SocialCubit.get(context).clearMessages();
+                    SocialCubit.get(context).changeEditMessage(false);
                     Navigator.pop(context);
                   },
                 ),
@@ -46,7 +46,7 @@ class ChatDetailsScreen extends StatelessWidget {
 
                     SocialCubit.get(context)
                         .getSpecificUserData(specificUserId: userModel.uId!);
-                    navigateTo(context, const UserProfileScreen());
+                    navigateTo(context, const UserProfileScreen(true));
                   },
                   child: Row(
                     children: [
@@ -138,7 +138,7 @@ class ChatDetailsScreen extends StatelessWidget {
                         ),
                       ),
                     ),
-                    if (SocialCubit.get(context).isEdit)
+                    if (SocialCubit.get(context).isEditMessage)
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 10.0),
                         child: Container(
@@ -171,7 +171,7 @@ class ChatDetailsScreen extends StatelessWidget {
                               IconButton(
                                   onPressed: () {
                                     messageController.text = "";
-                                    SocialCubit.get(context).changeEdit(false);
+                                    SocialCubit.get(context).changeEditMessage(false);
                                   },
                                   icon: const Icon(Icons.close)),
                             ],
@@ -199,7 +199,7 @@ class ChatDetailsScreen extends StatelessWidget {
                                   horizontal: 15.0,
                                 ),
                                 child: TextFormField(
-                                  autofocus: SocialCubit.get(context).isEdit,
+                                  autofocus: SocialCubit.get(context).isEditMessage,
                                   controller: messageController,
                                   decoration: const InputDecoration(
                                     border: InputBorder.none,
@@ -213,14 +213,14 @@ class ChatDetailsScreen extends StatelessWidget {
                               color: defaultColor,
                               child: MaterialButton(
                                 onPressed: () {
-                                  if (!SocialCubit.get(context).isEdit) {
+                                  if (!SocialCubit.get(context).isEditMessage) {
                                     if (messageController.text.isEmpty) {
                                       messageScreen(
                                           message: "can't send empty message",
                                           state: ToastStates.ERROR);
                                     } else {
                                       SocialCubit.get(context).sendMessage(
-                                          receiverId: userModel.uId!,
+                                          user: userModel,
                                           text: messageController.text,
                                           dateTime: DateTime.now().toString());
                                       messageController.text = '';
@@ -236,13 +236,13 @@ class ChatDetailsScreen extends StatelessWidget {
                                           userModel.uId!,
                                           messageController.text);
                                       SocialCubit.get(context)
-                                          .changeEdit(false);
+                                          .changeEditMessage(false);
                                       messageController.text = '';
                                     }
                                   }
                                 },
                                 minWidth: 1.0,
-                                child: !SocialCubit.get(context).isEdit
+                                child: !SocialCubit.get(context).isEditMessage
                                     ? const Icon(
                                         IconBroken.Send,
                                         size: 16.0,
@@ -429,7 +429,7 @@ class ChatDetailsScreen extends StatelessWidget {
                 } else if (value == 2) {
                   messageController.text = model.text!;
                   SocialCubit.get(context).setEditMessageModel(model);
-                  SocialCubit.get(context).changeEdit(true);
+                  SocialCubit.get(context).changeEditMessage(true);
                 }
               });
             },
