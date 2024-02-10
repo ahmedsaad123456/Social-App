@@ -519,7 +519,7 @@ Widget buildPostItem(
                       navigateTo(
                           context,
                           CommentsScreen(model.comments, model.commentsId,
-                              index, screen, postId, model.post.uId!));
+                              index, screen, postId, model.post.uId! , model.likes));
                     },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
@@ -964,25 +964,26 @@ Widget buildCommentItem(
                     padding: const EdgeInsets.all(8.0),
                     child: Row(
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              comment.name ?? "",
-                              style: const TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 16.0,
-                                  fontWeight: FontWeight.w800),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            Expanded(
-                                child: Text(
-                              comment.text ?? "Loading!!",
-                              style: TextStyle(
-                                  color: Colors.grey[700], fontSize: 15.0),
-                            ))
-                          ],
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                comment.name ?? "",
+                                style: const TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 16.0,
+                                    fontWeight: FontWeight.w800),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Text(
+                                                            comment.text ?? "Loading!!",
+                                                            style: TextStyle(
+                                color: Colors.grey[700], fontSize: 15.0),
+                                                          )
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -1009,6 +1010,7 @@ Widget buildCommentItem(
                         ],
                       ),
                     ),
+                    if(comment.uId == SocialCubit.get(context).userDataModel!.user.uId)
                     const PopupMenuItem(
                       value: 2,
                       child: Row(

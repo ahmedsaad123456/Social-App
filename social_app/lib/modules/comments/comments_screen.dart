@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:social_app/layouts/cubit/social_cubit.dart';
 import 'package:social_app/layouts/cubit/social_states.dart';
 import 'package:social_app/models/comment_model.dart';
+import 'package:social_app/models/like_model.dart';
 import 'package:social_app/modules/likes/likes_screen.dart';
 import 'package:social_app/shared/components/components.dart';
 import 'package:social_app/shared/styles/icon_broken.dart';
@@ -25,8 +26,10 @@ class CommentsScreen extends StatelessWidget {
 
   final String postUserId;
 
+  final List<LikeModel> likes;
+
   const CommentsScreen(this.comments, this.commentsId, this.postIndex,
-      this.screen, this.postId, this.postUserId,
+      this.screen, this.postId, this.postUserId, this.likes,
       {super.key});
 
   @override
@@ -48,7 +51,7 @@ class CommentsScreen extends StatelessWidget {
             },
             context: context,
             title: 'comments',
-            actions: [buildNumberOfLikes(context, postIndex, screen)]),
+            actions: [buildNumberOfLikes(context, postIndex, screen , likes)]),
         body: Column(
           children: [
             Expanded(
@@ -227,14 +230,13 @@ class CommentsScreen extends StatelessWidget {
   // =================================================================================================================
 
   // number of likes on the post
-  Widget buildNumberOfLikes(context, index, ScreenType? screen) => InkWell(
+  Widget buildNumberOfLikes(
+          context, index, ScreenType? screen, List<LikeModel> likes) =>
+      InkWell(
         onTap: () {
           SocialCubit.get(context).changeEditComment(false);
 
-          navigateTo(
-              context,
-              LikesScreen(SocialCubit.get(context).allpostsData[index].likes,
-                  index, screen));
+          navigateTo(context, LikesScreen(likes, index, screen));
         },
         child: Padding(
           padding: const EdgeInsets.symmetric(
@@ -251,7 +253,7 @@ class CommentsScreen extends StatelessWidget {
                 width: 5.0,
               ),
               Text(
-                '${SocialCubit.get(context).allpostsData[index].likes.length}',
+                '${likes.length}',
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
             ],

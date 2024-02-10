@@ -114,7 +114,7 @@ class SocialCubit extends Cubit<SocialStates> {
           .collection('posts')
           .where("uId", isEqualTo: uId)
           .orderBy('dateTime', descending: true)
-          .limit(3);
+          .limit(5);
 
       // if the user need to show more
       // If loading more and we have existing posts, fetch next batch after the last post
@@ -737,9 +737,9 @@ class SocialCubit extends Cubit<SocialStates> {
             postQuery.orderBy(FieldPath.documentId).startAfter([postId.last]);
       }
 
-      // get 3 posts only every time
+      // get 5 posts only every time
       QuerySnapshot postQuerySnapshot =
-          await postQuery.where('uId', whereIn: followingIds).limit(3).get();
+          await postQuery.where('uId', whereIn: followingIds).limit(5).get();
 
       if (postQuerySnapshot.docs.isNotEmpty) {
         for (QueryDocumentSnapshot postSnapshot in postQuerySnapshot.docs) {
@@ -971,9 +971,9 @@ class SocialCubit extends Cubit<SocialStates> {
     // If loading more and we have existing users, fetch next batch after the last user
     if (loadMore && users.isNotEmpty) {
       usersQuery =
-          usersQuery.orderBy('uId').startAfter([users.last.uId]).limit(3);
+          usersQuery.orderBy('uId').startAfter([users.last.uId]).limit(5);
     } else {
-      usersQuery = usersQuery.orderBy('uId').limit(3);
+      usersQuery = usersQuery.orderBy('uId').limit(5);
     }
 
     // Fetch users based on the query
@@ -1714,7 +1714,7 @@ class SocialCubit extends Cubit<SocialStates> {
           .collection('posts')
           .where("uId", isEqualTo: specificUserId)
           .orderBy('dateTime', descending: true)
-          .limit(3);
+          .limit(5);
 
       // if the user need to show more
       // If loading more and we have existing posts, fetch next batch after the last post
