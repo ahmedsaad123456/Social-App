@@ -32,18 +32,18 @@ class FollowUserScreen extends StatelessWidget {
             context: context,
             title: title,
           ),
-          body: Column(
-            children: [
-              SingleChildScrollView(
-                child: ListView.separated(
+          body: SingleChildScrollView(
+            child: Column(
+              children: [
+                ListView.separated(
                     physics: const BouncingScrollPhysics(),
                     shrinkWrap: true,
                     itemBuilder: (context, index) => buildFollowUserItem(
                         followUsers[index], context, screen),
                     separatorBuilder: (context, index) => myDivider(),
                     itemCount: followUsers.length),
-              ),
-            ],
+              ],
+            ),
           )),
     );
   }
