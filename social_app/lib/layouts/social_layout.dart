@@ -24,6 +24,7 @@ class SocialLayout extends StatelessWidget {
         var cubit = SocialCubit.get(context); // Get the instance of SocialCubit
         return Scaffold(
           appBar: AppBar(
+
             title: Text(cubit
                 .titles[cubit.currentIndex]), // Display current screen title
             actions: [
@@ -68,6 +69,7 @@ class SocialLayout extends StatelessWidget {
                   icon: Icon(IconBroken.Setting),
                   label: 'Settings'), // Settings screen
             ],
+            selectedItemColor: Colors.deepPurple,
           ),
         );
       },

@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:social_app/layouts/cubit/social_cubit.dart';
 import 'package:social_app/layouts/social_layout.dart';
 import 'package:social_app/modules/login/login_screen.dart';
+import 'package:social_app/modules/splash/splash_screen.dart';
 import 'package:social_app/shared/bloc_observer.dart';
 import 'package:social_app/shared/components/components.dart';
 import 'package:social_app/shared/components/constants.dart';
@@ -104,7 +105,8 @@ class MyApp extends StatelessWidget {
               themeMode: DarkCubit.get(context).isDark
                   ? ThemeMode.dark
                   : ThemeMode.light,
-              home: startWidget,
+              home: SplashView(startWidget),
+              
             );
           }),
     );

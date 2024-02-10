@@ -1,5 +1,6 @@
 import 'package:conditional_builder_null_safety/conditional_builder_null_safety.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:social_app/layouts/cubit/social_cubit.dart';
 import 'package:social_app/layouts/social_layout.dart';
@@ -38,129 +39,189 @@ class LoginScreen extends StatelessWidget {
             uId = state.uId;
             SocialCubit.get(context).getUserData();
             SocialCubit.get(context).getLoggedInUserPostsData();
-            
 
             navigateAndFinish(
                 context, const SocialLayout()); // Navigate to main app layout
           });
         }
       }, builder: (context, state) {
+        SystemChrome.setSystemUIOverlayStyle(
+            SystemUiOverlayStyle(statusBarColor:  Color.fromRGBO(143, 148, 251, 1)));
         return Scaffold(
-          backgroundColor: Colors.white,
-          body: Center(
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Form(
-                  key: formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'LOGIN', // Title
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineMedium!
-                            .copyWith(
-                              color: Colors.black,
+            backgroundColor: Colors.white,
+            body: SingleChildScrollView(
+              child: Container(
+                child: Column(
+                  children: <Widget>[
+                    Container(
+                      height: 400,
+                      decoration: BoxDecoration(
+                          image: DecorationImage(
+                              image: AssetImage('assets/images/background.png'),
+                              fit: BoxFit.fill)),
+                      child: Stack(
+                        children: <Widget>[
+                          Positioned(
+                            left: 30,
+                            width: 80,
+                            height: 200,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                  image: DecorationImage(
+                                      image: AssetImage(
+                                          'assets/images/light-1.png'))),
                             ),
-                      ),
-                      Text(
-                        'Login now to communicate with friends', // Subtitle
-                        style:
-                            Theme.of(context).textTheme.titleMedium!.copyWith(
-                                  color: Colors.grey,
+                          ),
+                          Positioned(
+                            left: 140,
+                            width: 80,
+                            height: 150,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                  image: DecorationImage(
+                                      image: AssetImage(
+                                          'assets/images/light-2.png'))),
+                            ),
+                          ),
+                          Positioned(
+                            right: 40,
+                            top: 40,
+                            width: 80,
+                            height: 150,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                  image: DecorationImage(
+                                      image: AssetImage(
+                                          'assets/images/clock.png'))),
+                            ),
+                          ),
+                          Positioned(
+                            child: Container(
+                              margin: EdgeInsets.only(top: 50),
+                              child: Center(
+                                child: Text(
+                                  "Login",
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 40,
+                                      fontWeight: FontWeight.bold),
                                 ),
-                      ),
-                      const SizedBox(
-                        height: 30.0,
-                      ),
-                      defaultFormField(
-                          controller: emailController,
-                          type: TextInputType.emailAddress,
-                          label: 'Email', // Email input field
-                          validate: (value) {
-                            if (value!.isEmpty) {
-                              return 'please enter your email address';
-                            }
-                            return null;
-                          },
-                          prefix: Icons.email_outlined), // Email icon
-                      const SizedBox(
-                        height: 15.0,
-                      ),
-                      defaultFormField(
-                        controller: passwordController,
-                        type: TextInputType.visiblePassword,
-                        label: 'Password', // Password input field
-                        validate: (value) {
-                          if (value!.isEmpty) {
-                            return 'please enter your password';
-                          }
-                          return null;
-                        },
-                        onSubmit: (value) {
-                          if (formKey.currentState!.validate()) {
-                            LoginCubit.get(context).userLogin(
-                                email: emailController.text,
-                                password: passwordController.text);
-                          }
-                        },
-                        prefix: Icons.lock_outlined, // Lock icon
-                        suffix: LoginCubit.get(context).passwordIcon,
-                        suffixPressed: () {
-                          LoginCubit.get(context).changeIcon();
-                        },
-                        isPassword: LoginCubit.get(context).isClicked,
-                      ),
-                      const SizedBox(
-                        height: 30.0,
-                      ),
-                      ConditionalBuilder(
-                        condition: state is! LoginLoadingState,
-                        builder: (context) => defaultButton(
-                            function: () {
-                              if (formKey.currentState!.validate()) {
-                                LoginCubit.get(context).userLogin(
-                                    email: emailController.text,
-                                    password: passwordController.text);
-                              }
-                            },
-                            text: 'LOGIN', // Login button text
-                            isUpperCase: true),
-                        fallback: (context) => const Center(
-                            child:
-                                CircularProgressIndicator()), // Loading indicator
-                      ),
-                      const SizedBox(
-                        height: 15.0,
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Expanded(
-                            child: Text('Don\'t have an account? '),
-                          ), // Sign up prompt
-                          Expanded(
-                            child: defaultTextButton(
-                                fun: () {
-                                  navigateTo(context,
-                                      RegisterScreen()); // Navigate to register screen
-                                },
-                                text: 'Register now'),
-                          ) // Register now button
+                              ),
+                            ),
+                          )
                         ],
                       ),
-                    ],
-                  ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.all(30.0),
+                      child: Column(
+                        children: <Widget>[
+                          Form(
+                            key: formKey,
+                            child: Column(
+                              children: <Widget>[
+                                Container(
+                                  padding: EdgeInsets.all(8.0),
+
+                                  child: defaultFormField(
+                                      controller: emailController,
+                                      type: TextInputType.emailAddress,
+                                      label: 'Email', // Email input field
+                                      validate: (value) {
+                                        if (value!.isEmpty) {
+                                          return 'please enter your email address';
+                                        }
+                                        return null;
+                                      },
+                                      prefix:
+                                          Icons.email_outlined), // Email icon
+                                ),
+                                const SizedBox(
+                                  height: 15.0,
+                                ),
+                                Container(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: defaultFormField(
+                                    controller: passwordController,
+                                    type: TextInputType.visiblePassword,
+                                    label: 'Password', // Password input field
+                                    validate: (value) {
+                                      if (value!.isEmpty) {
+                                        return 'please enter your password';
+                                      }
+                                      return null;
+                                    },
+                                    onSubmit: (value) {
+                                      if (formKey.currentState!.validate()) {
+                                        LoginCubit.get(context).userLogin(
+                                            email: emailController.text,
+                                            password: passwordController.text);
+                                      }
+                                    },
+                                    prefix: Icons.lock_outlined, // Lock icon
+                                    suffix:
+                                        LoginCubit.get(context).passwordIcon,
+                                    suffixPressed: () {
+                                      LoginCubit.get(context).changeIcon();
+                                    },
+                                    isPassword:
+                                        LoginCubit.get(context).isClicked,
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                          SizedBox(
+                            height: 30,
+                          ),
+                          Center(
+                            child: ConditionalBuilder(
+                              condition: state is! LoginLoadingState,
+                              builder: (context) => defaultButton(
+                                  function: () {
+                                    if (formKey.currentState!.validate()) {
+                                      LoginCubit.get(context).userLogin(
+                                          email: emailController.text,
+                                          password: passwordController.text);
+                                    }
+                                  },
+                                  text: 'LOGIN', // Login button text
+                                  isUpperCase: true),
+                              fallback: (context) => const Center(
+                                  child:
+                                      CircularProgressIndicator()), // Loading indicator
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 15.0,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Expanded(
+                                child: Text('Don\'t have an account? '),
+                              ), // Sign up prompt
+                              Expanded(
+                                child: defaultTextButton(
+                                    fun: () {
+                                      navigateTo(context,
+                                          RegisterScreen()); // Navigate to register screen
+                                    },
+                                    text: 'Register now'),
+                              ) // Register now button
+                            ],
+                          ),
+                        ],
+                      ),
+                    )
+                  ],
                 ),
               ),
-            ),
-          ),
-        );
+            ));
       }),
     );
   }
 }
 
 //================================================================================================================================
+

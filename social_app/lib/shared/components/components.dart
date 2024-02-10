@@ -99,13 +99,13 @@ Widget defaultButton({
 }) =>
     Container(
       width: width,
-      height: 40.0,
+      height: 50.0,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(
-          radius,
-        ),
-        color: background,
-      ),
+          borderRadius: BorderRadius.circular(10),
+          gradient: LinearGradient(colors: [
+            Color.fromRGBO(143, 148, 251, 1),
+            Color.fromRGBO(143, 148, 251, .6),
+          ])),
       child: MaterialButton(
         onPressed: function,
         child: Text(
@@ -215,8 +215,8 @@ PreferredSizeWidget defaultAppBar({
   Function()? fun,
 }) {
   fun ??= () {
-      Navigator.pop(context);
-    };
+    Navigator.pop(context);
+  };
   return AppBar(
     leading:
         IconButton(icon: const Icon(IconBroken.Arrow___Left_2), onPressed: fun),
