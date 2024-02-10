@@ -24,6 +24,10 @@ class UsersScreen extends StatelessWidget {
               message: "Check your internet connection",
               state: ToastStates.ERROR);
         }
+        if (state is SocialFollowUserErrorState ||
+            state is SocialUnFollowUserErrorState) {
+          messageScreen(message: 'Connection error', state: ToastStates.ERROR);
+        }
       },
       builder: (context, state) {
         var users = SocialCubit.get(context).users;

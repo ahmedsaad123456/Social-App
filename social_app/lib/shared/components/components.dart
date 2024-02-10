@@ -102,7 +102,7 @@ Widget defaultButton({
       height: 50.0,
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
-          gradient: LinearGradient(colors: [
+          gradient: const LinearGradient(colors: [
             Color.fromRGBO(143, 148, 251, 1),
             Color.fromRGBO(143, 148, 251, .6),
           ])),
@@ -253,6 +253,7 @@ Widget buildPostItem(
 
                   SocialCubit.get(context)
                       .getSpecificUserData(specificUserId: model.post.uId!);
+                  SocialCubit.get(context).changeEditComment(false);
 
                   navigateTo(context, const UserProfileScreen(false));
                 } else {
@@ -408,6 +409,8 @@ Widget buildPostItem(
                           Navigator.pop(context);
                         }
                       } else if (value == 2) {
+                        SocialCubit.get(context).changeEditComment(false);
+
                         navigateTo(context,
                             EditPostScreen(model, postId, index, screen));
                       }
@@ -429,6 +432,8 @@ Widget buildPostItem(
           InkWell(
             onTap: () {
               if (!isPostScreen) {
+                SocialCubit.get(context).changeEditComment(false);
+
                 navigateTo(context,
                     PostScreen(model, postId, index, ScreenType.POST, screen));
               }
@@ -451,6 +456,8 @@ Widget buildPostItem(
                 margin: const EdgeInsets.all(0.0),
                 child: GestureDetector(
                   onTap: () {
+                    SocialCubit.get(context).changeEditComment(false);
+
                     navigateTo(
                         context, ImageScreen(imageFile: model.post.postImage!));
                   },
@@ -475,6 +482,8 @@ Widget buildPostItem(
                   // number of likes on the post
                   child: InkWell(
                     onTap: () {
+                      SocialCubit.get(context).changeEditComment(false);
+
                       navigateTo(
                           context, LikesScreen(model.likes, index, screen));
                     },
@@ -486,7 +495,7 @@ Widget buildPostItem(
                         children: [
                           const Icon(
                             IconBroken.Heart,
-                            color: Colors.red,
+                            color: Colors.deepPurple,
                             size: 16.0,
                           ),
                           const SizedBox(
@@ -505,6 +514,8 @@ Widget buildPostItem(
                   // number of comments on the post
                   child: InkWell(
                     onTap: () {
+                      SocialCubit.get(context).changeEditComment(false);
+
                       navigateTo(
                           context,
                           CommentsScreen(model.comments, model.commentsId,
@@ -548,74 +559,77 @@ Widget buildPostItem(
             ),
           ),
           Row(
+            mainAxisAlignment: MainAxisAlignment.end,
             children: [
               // write comment on the post
-              Expanded(
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 18.0,
-                      backgroundColor:
-                          Colors.white, // Set background color to white
-                      child: ClipOval(
-                        child: Image.network(
-                          SocialCubit.get(context).userDataModel!.user.image!,
-                          width: 50,
-                          height: 50,
-                          fit: BoxFit.cover,
-                          loadingBuilder: (BuildContext context, Widget child,
-                              ImageChunkEvent? loadingProgress) {
-                            if (loadingProgress == null) {
-                              return child; // Return the main image when it's loaded
+              if (!isPostScreen)
+                Expanded(
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 18.0,
+                        backgroundColor:
+                            Colors.white, // Set background color to white
+                        child: ClipOval(
+                          child: Image.network(
+                            SocialCubit.get(context).userDataModel!.user.image!,
+                            width: 50,
+                            height: 50,
+                            fit: BoxFit.cover,
+                            loadingBuilder: (BuildContext context, Widget child,
+                                ImageChunkEvent? loadingProgress) {
+                              if (loadingProgress == null) {
+                                return child; // Return the main image when it's loaded
+                              } else {
+                                // Return a placeholder while the image is loading
+                                return const Center(
+                                  child: Image(
+                                      image: AssetImage(
+                                          'assets/images/white.jpeg')),
+                                );
+                              }
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Image(
+                                  image:
+                                      AssetImage('assets/images/white.jpeg'));
+                            },
+                          ),
+                        ),
+                      ),
+                      const SizedBox(
+                        width: 15.0,
+                      ),
+                      Expanded(
+                        child: TextFormField(
+                          keyboardType: TextInputType.text,
+                          controller: textController,
+                          decoration: const InputDecoration(
+                            border: InputBorder.none,
+                            hintText: 'Write a comment...',
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                          onPressed: () {
+                            if (textController.text.isEmpty) {
+                              messageScreen(
+                                  message: 'you can\'t send empty comment',
+                                  state: ToastStates.ERROR);
                             } else {
-                              // Return a placeholder while the image is loading
-                              return const Center(
-                                child: Image(
-                                    image:
-                                        AssetImage('assets/images/white.jpeg')),
-                              );
+                              SocialCubit.get(context).sendComment(
+                                  text: textController.text,
+                                  postID: postId,
+                                  index: index,
+                                  screen: screen);
+
+                              textController.text = '';
                             }
                           },
-                          errorBuilder: (context, error, stackTrace) {
-                            return const Image(
-                                image: AssetImage('assets/images/white.jpeg'));
-                          },
-                        ),
-                      ),
-                    ),
-                    const SizedBox(
-                      width: 15.0,
-                    ),
-                    Expanded(
-                      child: TextFormField(
-                        keyboardType: TextInputType.text,
-                        controller: textController,
-                        decoration: const InputDecoration(
-                          border: InputBorder.none,
-                          hintText: 'Write a comment...',
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                        onPressed: () {
-                          if (textController.text.isEmpty) {
-                            messageScreen(
-                                message: 'you can\'t send empty comment',
-                                state: ToastStates.ERROR);
-                          } else {
-                            SocialCubit.get(context).sendComment(
-                                text: textController.text,
-                                postID: postId,
-                                index: index,
-                                screen: screen);
-
-                            textController.text = '';
-                          }
-                        },
-                        icon: const Icon(IconBroken.Arrow___Right_Square)),
-                  ],
+                          icon: const Icon(IconBroken.Arrow___Right_Square)),
+                    ],
+                  ),
                 ),
-              ),
               // do like on the post
               LikeButton(
                 isLiked: model.isLiked,
@@ -898,6 +912,7 @@ Widget buildCommentItem(
 
                     SocialCubit.get(context)
                         .getSpecificUserData(specificUserId: comment.uId!);
+                    SocialCubit.get(context).changeEditComment(false);
 
                     navigateTo(context, const UserProfileScreen(false));
                   } else {
@@ -994,6 +1009,18 @@ Widget buildCommentItem(
                         ],
                       ),
                     ),
+                    const PopupMenuItem(
+                      value: 2,
+                      child: Row(
+                        children: [
+                          Icon(IconBroken.Edit),
+                          SizedBox(
+                            width: 10,
+                          ),
+                          Text("Edit")
+                        ],
+                      ),
+                    ),
                   ];
                 },
                 onSelected: (value) {
@@ -1040,6 +1067,10 @@ Widget buildCommentItem(
                         ],
                       ),
                     );
+                  } else if (value == 2) {
+                    SocialCubit.get(context).setEditCommentModel(
+                        editModel: comment , commentID: commentId , postID: postId , postIndex: postIndex ,commentIndex: commentIndex);
+                    SocialCubit.get(context).changeEditComment(true);
                   }
                 },
               ),

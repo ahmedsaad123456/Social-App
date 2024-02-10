@@ -15,12 +15,18 @@ class FollowUserScreen extends StatelessWidget {
   // type of the screen
   final ScreenType? screen;
 
-  const FollowUserScreen(this.followUsers, this.title, this.screen ,{super.key});
+  const FollowUserScreen(this.followUsers, this.title, this.screen,
+      {super.key});
 
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<SocialCubit, SocialStates>(
-      listener: (context, state) {},
+      listener: (context, state) {
+        if (state is SocialFollowUserErrorState ||
+            state is SocialUnFollowUserErrorState) {
+          messageScreen(message: 'Connection error', state: ToastStates.ERROR);
+        }
+      },
       builder: (context, state) => Scaffold(
           appBar: defaultAppBar(
             context: context,
@@ -32,8 +38,8 @@ class FollowUserScreen extends StatelessWidget {
                 child: ListView.separated(
                     physics: const BouncingScrollPhysics(),
                     shrinkWrap: true,
-                    itemBuilder: (context, index) =>
-                        buildFollowUserItem(followUsers[index], context , screen),
+                    itemBuilder: (context, index) => buildFollowUserItem(
+                        followUsers[index], context, screen),
                     separatorBuilder: (context, index) => myDivider(),
                     itemCount: followUsers.length),
               ),

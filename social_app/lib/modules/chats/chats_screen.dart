@@ -16,17 +16,24 @@ class ChatsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<SocialCubit, SocialStates>(
-      listener: (context, state) {},
+      listener: (context, state) {
+        if (state is SocialDeleteChatErrorState) {
+          messageScreen(message: 'Connection error', state: ToastStates.ERROR);
+        }
+      },
       builder: (context, state) {
-        var chatUsers = SocialCubit.get(context).userDataModel!.userChatsModel;
         return ConditionalBuilder(
           condition: SocialCubit.get(context).userDataModel != null,
           builder: (context) => ListView.separated(
               physics: const BouncingScrollPhysics(),
-              itemBuilder: (context, index) =>
-                  buildChatItem(chatUsers[index], context),
+              itemBuilder: (context, index) => buildChatItem(
+                  SocialCubit.get(context).userDataModel!.userChatsModel[index],
+                  context),
               separatorBuilder: (context, index) => myDivider(),
-              itemCount: chatUsers.length),
+              itemCount: SocialCubit.get(context)
+                  .userDataModel!
+                  .userChatsModel
+                  .length),
           fallback: (context) => const Center(
             child: CircularProgressIndicator(),
           ),
@@ -97,7 +104,6 @@ class ChatsScreen extends StatelessWidget {
                     onPressed: () {
                       SocialCubit.get(context).deleteChat(model.uId!);
                       Navigator.of(ctx).pop();
-
                     },
                     child: Container(
                       color: Colors.green,
@@ -123,7 +129,7 @@ class ChatsScreen extends StatelessWidget {
               backgroundColor: Colors.white, // Set background color to white
               child: ClipOval(
                 child: Image.network(
-                  model.image?? '',
+                  model.image ?? '',
                   width: 50,
                   height: 50,
                   fit: BoxFit.cover,

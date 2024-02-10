@@ -27,7 +27,12 @@ class ChatDetailsScreen extends StatelessWidget {
         // get messages of this chat
         SocialCubit.get(context).getMessages(receiverId: userModel.uId!);
         return BlocConsumer<SocialCubit, SocialStates>(
-          listener: (context, state) {},
+          listener: (context, state) {
+            if (state is SocialEditMessageErrorState || state is SocialDeleteMessageErrorState || state is SocialSendMessageErrorState ) {
+              messageScreen(
+                  message: 'Connection error', state: ToastStates.ERROR);
+            }
+          },
           builder: (context, state) {
             return Scaffold(
               appBar: AppBar(
@@ -171,7 +176,8 @@ class ChatDetailsScreen extends StatelessWidget {
                               IconButton(
                                   onPressed: () {
                                     messageController.text = "";
-                                    SocialCubit.get(context).changeEditMessage(false);
+                                    SocialCubit.get(context)
+                                        .changeEditMessage(false);
                                   },
                                   icon: const Icon(Icons.close)),
                             ],
@@ -199,7 +205,8 @@ class ChatDetailsScreen extends StatelessWidget {
                                   horizontal: 15.0,
                                 ),
                                 child: TextFormField(
-                                  autofocus: SocialCubit.get(context).isEditMessage,
+                                  autofocus:
+                                      SocialCubit.get(context).isEditMessage,
                                   controller: messageController,
                                   decoration: const InputDecoration(
                                     border: InputBorder.none,

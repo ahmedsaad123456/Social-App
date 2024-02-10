@@ -46,7 +46,7 @@ class LoginScreen extends StatelessWidget {
         }
       }, builder: (context, state) {
         SystemChrome.setSystemUIOverlayStyle(
-            SystemUiOverlayStyle(statusBarColor:  Color.fromRGBO(143, 148, 251, 1)));
+            const SystemUiOverlayStyle(statusBarColor:  Color.fromRGBO(143, 148, 251, 1)));
         return Scaffold(
             backgroundColor: Colors.white,
             body: SingleChildScrollView(
@@ -55,7 +55,7 @@ class LoginScreen extends StatelessWidget {
                   children: <Widget>[
                     Container(
                       height: 400,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                           image: DecorationImage(
                               image: AssetImage('assets/images/background.png'),
                               fit: BoxFit.fill)),
@@ -66,7 +66,7 @@ class LoginScreen extends StatelessWidget {
                             width: 80,
                             height: 200,
                             child: Container(
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                   image: DecorationImage(
                                       image: AssetImage(
                                           'assets/images/light-1.png'))),
@@ -77,7 +77,7 @@ class LoginScreen extends StatelessWidget {
                             width: 80,
                             height: 150,
                             child: Container(
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                   image: DecorationImage(
                                       image: AssetImage(
                                           'assets/images/light-2.png'))),
@@ -89,7 +89,7 @@ class LoginScreen extends StatelessWidget {
                             width: 80,
                             height: 150,
                             child: Container(
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                   image: DecorationImage(
                                       image: AssetImage(
                                           'assets/images/clock.png'))),
@@ -97,8 +97,8 @@ class LoginScreen extends StatelessWidget {
                           ),
                           Positioned(
                             child: Container(
-                              margin: EdgeInsets.only(top: 50),
-                              child: Center(
+                              margin: const EdgeInsets.only(top: 50),
+                              child: const Center(
                                 child: Text(
                                   "Login",
                                   style: TextStyle(
@@ -113,7 +113,7 @@ class LoginScreen extends StatelessWidget {
                       ),
                     ),
                     Padding(
-                      padding: EdgeInsets.all(30.0),
+                      padding: const EdgeInsets.all(30.0),
                       child: Column(
                         children: <Widget>[
                           Form(
@@ -121,7 +121,7 @@ class LoginScreen extends StatelessWidget {
                             child: Column(
                               children: <Widget>[
                                 Container(
-                                  padding: EdgeInsets.all(8.0),
+                                  padding: const EdgeInsets.all(8.0),
 
                                   child: defaultFormField(
                                       controller: emailController,
@@ -140,7 +140,7 @@ class LoginScreen extends StatelessWidget {
                                   height: 15.0,
                                 ),
                                 Container(
-                                  padding: EdgeInsets.all(8.0),
+                                  padding: const EdgeInsets.all(8.0),
                                   child: defaultFormField(
                                     controller: passwordController,
                                     type: TextInputType.visiblePassword,
@@ -171,7 +171,7 @@ class LoginScreen extends StatelessWidget {
                               ],
                             ),
                           ),
-                          SizedBox(
+                          const SizedBox(
                             height: 30,
                           ),
                           Center(

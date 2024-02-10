@@ -49,7 +49,7 @@ class RegisterScreen extends StatelessWidget {
         }
       }, builder: (context, state) {
         SystemChrome.setSystemUIOverlayStyle(
-            SystemUiOverlayStyle(statusBarColor:  Color.fromRGBO(143, 148, 251, 1)));
+            const SystemUiOverlayStyle(statusBarColor:  Color.fromRGBO(143, 148, 251, 1)));
         return Scaffold(
             backgroundColor: Colors.white,
             body: SingleChildScrollView(
@@ -58,7 +58,7 @@ class RegisterScreen extends StatelessWidget {
                   children: <Widget>[
                     Container(
                       height: 400,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                           image: DecorationImage(
                               image: AssetImage('assets/images/background.png'),
                               fit: BoxFit.fill)),
@@ -69,7 +69,7 @@ class RegisterScreen extends StatelessWidget {
                             width: 80,
                             height: 200,
                             child: Container(
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                   image: DecorationImage(
                                       image: AssetImage(
                                           'assets/images/light-1.png'))),
@@ -80,7 +80,7 @@ class RegisterScreen extends StatelessWidget {
                             width: 80,
                             height: 150,
                             child: Container(
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                   image: DecorationImage(
                                       image: AssetImage(
                                           'assets/images/light-2.png'))),
@@ -92,7 +92,7 @@ class RegisterScreen extends StatelessWidget {
                             width: 80,
                             height: 150,
                             child: Container(
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                   image: DecorationImage(
                                       image: AssetImage(
                                           'assets/images/clock.png'))),
@@ -100,8 +100,8 @@ class RegisterScreen extends StatelessWidget {
                           ),
                           Positioned(
                             child: Container(
-                              margin: EdgeInsets.only(top: 50),
-                              child: Center(
+                              margin: const EdgeInsets.only(top: 50),
+                              child: const Center(
                                 child: Text(
                                   "Register",
                                   style: TextStyle(
@@ -116,7 +116,7 @@ class RegisterScreen extends StatelessWidget {
                       ),
                     ),
                     Padding(
-                      padding: EdgeInsets.only(left: 30, right: 30, bottom: 30),
+                      padding: const EdgeInsets.only(left: 30, right: 30, bottom: 30),
                       child: Column(
                         children: <Widget>[
                           Form(
@@ -124,7 +124,7 @@ class RegisterScreen extends StatelessWidget {
                             child: Column(
                               children: <Widget>[
                                 Container(
-                                  padding: EdgeInsets.symmetric(horizontal: 8),
+                                  padding: const EdgeInsets.symmetric(horizontal: 8),
                                   child: defaultFormField(
                                       controller: nameController,
                                       type: TextInputType.name,
@@ -141,7 +141,7 @@ class RegisterScreen extends StatelessWidget {
                                   height: 5.0,
                                 ),
                                 Container(
-                                  padding: EdgeInsets.all(8.0),
+                                  padding: const EdgeInsets.all(8.0),
                                   child: defaultFormField(
                                       controller: emailController,
                                       type: TextInputType.emailAddress,
@@ -158,7 +158,7 @@ class RegisterScreen extends StatelessWidget {
                                   height: 5.0,
                                 ),
                                 Container(
-                                  padding: EdgeInsets.symmetric(horizontal: 8),
+                                  padding: const EdgeInsets.symmetric(horizontal: 8),
                                   child: defaultFormField(
                                     controller: passwordController,
                                     type: TextInputType.visiblePassword,
@@ -183,7 +183,7 @@ class RegisterScreen extends StatelessWidget {
                                   height: 5.0,
                                 ),
                                 Container(
-                                  padding: EdgeInsets.all(8.0),
+                                  padding: const EdgeInsets.all(8.0),
                                   child: defaultFormField(
                                       controller: phoneController,
                                       type: TextInputType.phone,

@@ -22,7 +22,13 @@ class UsersSearchScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<SocialCubit, SocialStates>(
-      listener: (context, state) {},
+      listener: (context, state) {
+        if (state is SocialFollowUserErrorState ||
+            state is SocialUnFollowUserErrorState ||
+            state is SocialGetSearchUsersErrorState) {
+          messageScreen(message: 'Connection error', state: ToastStates.ERROR);
+        }
+      },
       builder: (context, state) {
         var list = SocialCubit.get(context).usersSearch;
         return Scaffold(
@@ -49,8 +55,11 @@ class UsersSearchScreen extends StatelessWidget {
                     },
                   ),
                 ),
-                const SizedBox(height: 10.0,),
-                if (state is SocialGetSearchUsersLoadingState) const LinearProgressIndicator(),
+                const SizedBox(
+                  height: 10.0,
+                ),
+                if (state is SocialGetSearchUsersLoadingState)
+                  const LinearProgressIndicator(),
                 Expanded(child: searchBuilder(list, context, isSearch: true)),
               ],
             ),
@@ -63,19 +72,21 @@ class UsersSearchScreen extends StatelessWidget {
 //================================================================================================================================
 
   // Widget to build the search results
-  Widget searchBuilder(List<FollowModel> list, context, {isSearch = false}) => ConditionalBuilder(
-    condition: list.isNotEmpty ,
-    builder: (context) => ListView.separated(
-      physics: const BouncingScrollPhysics(),
-      itemBuilder: (context, index) => buildUserItem(list[index], context),
-      separatorBuilder: (context, index) => myDivider(),
-      itemCount: list.length, 
-    ),
-    fallback: (context) => isSearch ? Container() : const Center(child: CircularProgressIndicator()),
-  );
+  Widget searchBuilder(List<FollowModel> list, context, {isSearch = false}) =>
+      ConditionalBuilder(
+        condition: list.isNotEmpty,
+        builder: (context) => ListView.separated(
+          physics: const BouncingScrollPhysics(),
+          itemBuilder: (context, index) => buildUserItem(list[index], context),
+          separatorBuilder: (context, index) => myDivider(),
+          itemCount: list.length,
+        ),
+        fallback: (context) => isSearch
+            ? Container()
+            : const Center(child: CircularProgressIndicator()),
+      );
 
 //================================================================================================================================
-
 }
 
 

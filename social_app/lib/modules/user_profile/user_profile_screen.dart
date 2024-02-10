@@ -30,6 +30,13 @@ class UserProfileScreen extends StatelessWidget {
               message: "Check your internet connection",
               state: ToastStates.ERROR);
         }
+        if (state is SocialSendCommentPostErrorState ||
+            state is SocialLikePostErrorState ||
+            state is SocialUnlikePostErrorState ||
+            state is SocialFollowUserErrorState ||
+            state is SocialUnFollowUserErrorState) {
+          messageScreen(message: 'Connection error', state: ToastStates.ERROR);
+        }
       },
       builder: (context, state) {
         var loggedInUser = SocialCubit.get(context).userDataModel!.user;
@@ -281,34 +288,34 @@ class UserProfileScreen extends StatelessWidget {
                           const SizedBox(
                             width: 10.0,
                           ),
-                          if(!isFromChat)
-                          OutlinedButton(
-                            onPressed: () {
-                              navigateTo(
-                                  context,
-                                  ChatDetailsScreen(FollowModel(
-                                      bio: SocialCubit.get(context)
-                                          .specificUserDataModel!
-                                          .user
-                                          .bio,
-                                      image: SocialCubit.get(context)
-                                          .specificUserDataModel!
-                                          .user
-                                          .image,
-                                      name: SocialCubit.get(context)
-                                          .specificUserDataModel!
-                                          .user
-                                          .name,
-                                      uId: SocialCubit.get(context)
-                                          .specificUserDataModel!
-                                          .user
-                                          .uId)));
-                            },
-                            child: const Icon(
-                              IconBroken.Message,
-                              size: 16.0,
+                          if (!isFromChat)
+                            OutlinedButton(
+                              onPressed: () {
+                                navigateTo(
+                                    context,
+                                    ChatDetailsScreen(FollowModel(
+                                        bio: SocialCubit.get(context)
+                                            .specificUserDataModel!
+                                            .user
+                                            .bio,
+                                        image: SocialCubit.get(context)
+                                            .specificUserDataModel!
+                                            .user
+                                            .image,
+                                        name: SocialCubit.get(context)
+                                            .specificUserDataModel!
+                                            .user
+                                            .name,
+                                        uId: SocialCubit.get(context)
+                                            .specificUserDataModel!
+                                            .user
+                                            .uId)));
+                              },
+                              child: const Icon(
+                                IconBroken.Message,
+                                size: 16.0,
+                              ),
                             ),
-                          ),
                         ],
                       ),
 

@@ -37,6 +37,13 @@ class SettingsScreen extends StatelessWidget {
         if (state is SocialEditPostErrorState) {
           messageScreen(message: "Failed", state: ToastStates.ERROR);
         }
+        if (state is SocialSendCommentPostErrorState ||
+            state is SocialLikePostErrorState ||
+            state is SocialUnlikePostErrorState ||
+            state is SocialDeleteCommentPostErrorState ||
+            state is SocialEditCommentErrorState) {
+          messageScreen(message: 'Connection error', state: ToastStates.ERROR);
+        }
       },
       builder: (context, state) {
 

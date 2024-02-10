@@ -1171,6 +1171,8 @@ class SocialCubit extends Cubit<SocialStates> {
     emit(SocialSetMessageModelState());
   }
 
+//================================================================================================================================
+
   // Method to edit a message in Firestore collection based on its dateTime (unique format)
   void editMessage(String receiverId, String newText) {
     editMessageModel!.text = newText;
@@ -1433,6 +1435,102 @@ class SocialCubit extends Cubit<SocialStates> {
       emit(SocialDeleteCommentPostSuccessState());
     }).catchError((error) {
       emit(SocialDeleteCommentPostErrorState());
+    });
+  }
+
+//================================================================================================================================
+//================================================================================================================================
+
+  late CommentModel editCommentModel;
+
+  late String commentUserID;
+
+  late String postUserID;
+  late int postUserIndex;
+  late int commentUserIndex;
+
+  void setEditCommentModel({
+    required CommentModel editModel,
+    required String commentID,
+    required String postID,
+    required int postIndex,
+    required int commentIndex,
+  }) {
+    editCommentModel = editModel;
+    commentUserID = commentID;
+    postUserID = postID;
+    postUserIndex = postIndex;
+    commentUserIndex = commentIndex;
+
+    emit(SocialSetCommentModelState());
+  }
+//================================================================================================================================
+
+  bool isEditComment = false;
+
+  void changeEditComment(bool edit) {
+    isEditComment = edit;
+    emit(SocialChangeIsEditCommentState());
+  }
+
+
+//================================================================================================================================
+
+  // Method to edit a comment in Firestore collection based on comment id
+  void editComment(String newText, ScreenType screen) {
+    editCommentModel.text = newText;
+    FirebaseFirestore.instance
+        .collection('posts')
+        .doc(postUserID)
+        .collection('comments')
+        .doc(commentUserID)
+        .update(editCommentModel.toMap())
+        .then((querySnapshot) {
+      // Check the value of the screen parameter
+      if (screen == ScreenType.HOME) {
+        // If screen is HOME, update the comments list in allpostsData
+        allpostsData[postUserIndex].comments[commentUserIndex] =
+            editCommentModel;
+        // check if the post is in the posts of the logged in user
+        int userPostIndex = loggedInUserpostId.indexOf(postUserID);
+
+        if (userPostIndex != -1) {
+          // If the postId is found in the list, update the comments list in loggedInUserpostsData
+          loggedInUserpostsData[userPostIndex].comments[commentUserIndex] =
+              editCommentModel;
+        }
+      } else if (screen == ScreenType.SETTINGS) {
+        // If screen is Settings, update the comments list in loggedInUserpostsData
+        loggedInUserpostsData[postUserIndex].comments[commentUserIndex] =
+            editCommentModel;
+
+        // check if the post is in the posts of the home
+        int userPostIndex = postId.indexOf(postUserID);
+
+        if (userPostIndex != -1) {
+          // If the postId is found in the list, update the comments list in the home
+          allpostsData[userPostIndex].comments[commentUserIndex] =
+              editCommentModel;
+        }
+      } else if (screen == ScreenType.PROFILE) {
+        // If screen is profile, update the comments list in specificUserpostsData
+        specificUserpostsData[postUserIndex].comments[commentUserIndex] =
+            editCommentModel;
+
+        // check if the post is in the posts of the home
+        int userPostIndex = postId.indexOf(postUserID);
+
+        if (userPostIndex != -1) {
+          // If the postId is found in the list, update the comments list in the home
+          allpostsData[userPostIndex].comments[commentUserIndex] =
+              editCommentModel;
+        }
+      }
+
+      emit(SocialEditCommentSuccessState());
+    }).catchError((error) {
+      print(error.toString());
+      emit(SocialEditCommentErrorState());
     });
   }
 

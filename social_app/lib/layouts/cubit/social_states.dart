@@ -216,7 +216,15 @@ class SocialDeleteCommentPostSuccessState extends SocialStates {}
 class SocialDeleteCommentPostErrorState extends SocialStates {}
 
 
+// edit comments
 
+class SocialChangeIsEditCommentState extends SocialStates {}
+
+class SocialEditCommentSuccessState extends SocialStates {}
+
+class SocialEditCommentErrorState extends SocialStates {}
+
+class SocialSetCommentModelState extends SocialStates {}
 
 // search for users
 
@@ -289,3 +297,5 @@ class SocialGetSpecificUserPostEmptyState extends SocialStates{}
 // clear specific user data
 
 class SocialClearSpecificUserSuccessState extends SocialStates{}
+
+

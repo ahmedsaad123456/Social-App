@@ -15,6 +15,12 @@ import 'package:social_app/shared/network/local/cache_helper.dart';
 import 'package:social_app/shared/styles/themes.dart';
 
 //==========================================================================================================================================================
+// Future features : 
+//                   - Dark mode
+//                   - Notifications
+//                   - check interner connection
+
+
 
 Future<void> firebaseBackgroundMessagingHandler(RemoteMessage message) async {
   // print('on background message');
@@ -28,10 +34,10 @@ void main() async {
       // options: DefaultFirebaseOptions.currentPlatform,
       );
 
-  var token = await FirebaseMessaging.instance.getToken();
+  // var token = await FirebaseMessaging.instance.getToken();
 
-  print('The Token: ');
-  print(token);
+  // print('The Token: ');
+  // print(token);
   // opened and in it
   // forground fcm
   FirebaseMessaging.onMessage.listen((event) {
@@ -106,7 +112,6 @@ class MyApp extends StatelessWidget {
                   ? ThemeMode.dark
                   : ThemeMode.light,
               home: SplashView(startWidget),
-              
             );
           }),
     );
