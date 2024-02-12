@@ -5,28 +5,37 @@ This Flutter project utilizes the Bloc state management pattern along with Fireb
 ## Features
 
 ### Authentication and User Management:
-- User authentication with email and password
-- Registration validation to ensure unique emails
-- User profile editing capabilities
+
+- Easy handle user authentication, allowing smooth login and registration processes.
+- Implemented validation to ensure each user registers with a unique email.
+- Allow users to edit their profile information.
+
 
 ### User Interaction:
-- Follow/unfollow functionality for users
-- User profile viewing
-- User search functionality
+
+- Introduced features for users to follow and unfollow each other.
+- Enhanced user experience with intuitive profiles, enabling easy exploration of other users' details.
+- Simplified user discovery through robust search functionality.
+
 
 ### Post Management:
-- Dynamic post feed with pagination
-- Post creation, editing, and deletion
-- Post liking and commenting
-- Comment editing and deletion
+
+- Implemented a dynamic post feed, displaying posts which created by followings of the user with the ability to load more for endless content consumption.
+- Enabled users to create, edit, and delete their posts, ensuring full control over their content.
+- Fostered engagement with features like liking posts and leaving comments.
+- Enabled users to edit and delete their comments , and for thier posts they can delete any comment.
+
 
 ### Messaging:
-- Real-time messaging between users
-- Message editing and deletion
-- Flexible message deletion options (for both parties or sender only)
-- Chat thread deletion
 
-## vedio link in linked in for the application :
+- Facilitated communication between users with a robust messaging system.
+- Empowered users to edit and delete their messages..
+- Allowing the user to delete the other user’s message, and this only affects the user’s chat and not the other user’s chat.
+- Simplified organization with the ability to delete entire chat and this lead to delete all messages in this chat in user's chat not in other user's chat.
+
+
+
+## LinkedIn link for the application (vedio) :
 
 
 ## Dependencies
@@ -48,6 +57,8 @@ This project uses the following dependencies:
 - `firebase_auth` for authentication services
 - `cloud_firestore` for real-time NoSQL database capabilities
 - `firebase_storage` for accessing Firebase Cloud Storage
+- `firebase_cloud_messaging` for real-time messaging between users
+
 
 
 
