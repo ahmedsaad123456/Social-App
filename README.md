@@ -36,7 +36,7 @@ This Flutter project utilizes the Bloc state management pattern along with Fireb
 
 
 ## LinkedIn link for the application (vedio) :
-
+https://www.linkedin.com/posts/ahmed-saad-867b5a280_just-wrapped-up-an-exciting-flutter-project-activity-7163559485376978946-TqI0?utm_source=share&utm_medium=member_android
 
 ## Dependencies
 
